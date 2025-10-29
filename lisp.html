@@ -249,9 +249,9 @@ a * (b + c) / d
     <br/>
     <li>The <code>type-of</code> function returns the data type of a given object.</li>
 <pre><code>
-(let ((x 42) (y "hello"))
-    (format t "~%The type of X is: ~a" (type-of x))
-    (format t "~%The type of Y is: ~a" (type-of y)))
+    (let ((x 42) (y "hello"))
+      (format t "~%The type of X is: ~a" (type-of x))
+      (format t "~%The type of Y is: ~a" (type-of y)))
 </code></pre>
     <br/>
     <br/>
@@ -315,17 +315,17 @@ a * (b + c) / d
     <li>Syntax for defining a named macro:</li>
 <pre><code>
     (defmacro &lt;macro-name&gt; (&lt;param-list&gt;)
-        "optional document string."
-        &lt;body&gt;)
+      "optional document string."
+      &lt;body&gt;)
 </code></pre>
     <br/>
     <br/>
     <li>Simple Example:</li>
 <pre><code>
     (defmacro assign10 (num)
-        "A macro that sets a given variable to value 10"
-        (setq num 10)
-        (print num))
+      "A macro that sets a given variable to value 10"
+      (setq num 10)
+      (print num))
 
     (setq x 100)
     (print x)       ; 100
@@ -353,15 +353,26 @@ a * (b + c) / d
     (print x)
 </code></pre>
     <br/>
+    <br/>
     <li>If there is no type declaration for variables in Lisp, you can directly specify a value for a symbol with the <code>setq</code> construct.</li>
+    <br/>
     <br/>
     <li>There are two constructs: <code>let</code> and <code>prog</code>(no longer commonly used) for creating local variables.</li>
     <br/>
-    <li></li>
     <br/>
-    <li></li>
+    <li>The <code>let</code> construct has the following syntax.<br/>
+        If you did NOT include an initial value for a variable, it is assigned <code>nil</code>.</li>
+<pre><code>
+    (let ((var-1 val-1) (var-2 val-2) ... (var-n val-n))
+      &lt;s-expression&gt;)
+</code></pre>
     <br/>
-    <li></li>
+    <br/>
+    <li>The <code>prog</code> construct has the following syntax.</li>
+<pre><code>
+    (prog (var-1 var-2 ... var-n)
+      &lt;s-expression&gt;)
+</code></pre>
     <br/>
 </ol>
 <br/>
@@ -423,7 +434,21 @@ a * (b + c) / d
 <!-- * * * * * * * * * * * * * * -->
 <h3><u>if</u> Statement</h3>
 <ol>
+    <li>Syntax:<code> (if &lt;cond&gt; &lt;then&gt; [&lt;else&gt;]) </code></li>
+    <br/>
+    <br/>
+    <li>Basic Example:</li>
+<pre><code>
+    (if (&gt; 10 5)
+      (write-line "10 &gt; 5")
+      (write-line "10 &lt;= 5"))
+</code></pre>
+    <br/>
     <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
     <br/>
     <li></li>
     <br/>
