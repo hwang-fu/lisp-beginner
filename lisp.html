@@ -914,35 +914,67 @@ a * (b + c) / d
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>Functions As Data, a.k.a. Higher-Order Functions</h3>
 <ol>
-    <li></li>
-    <br/>
-    <li></li>
-    <br/>
-    <br/>
-    <li></li>
-    <br/>
-    <br/>
-    <li></li>
-    <br/>
-    <br/>
-    <li></li>
+    <li>The special operator <b>FUNCTION</b> provides the mechanism for getting at a function object.<br/>
+        It takes a single argument and returns the function with that name. The syntax <b>#'</b>, is a syntactic sugar for <b>FUNCTION</b></li>
+<pre><code>
+    (sbcl) (defun foo (x) (* 2 x))
+    FOO
+    (sbcl) (function foo)
+    #<Interpreted Function FOO>
+    (sbcl) #'foo
+    #<Interpreted Function FOO>
+</code></pre>
     <br/>
     <br/>
-    <li></li>
+    <li><b>FUNCALL</b> is the one to use when you know the number of arguments you're going to pass to the function at the time you write the code.<br/>
+        <code>(foo 1 2 3)</code> and <code>(funcall #'foo 1 2 3)</code> are basically the same.</li>
     <br/>
     <br/>
-    <li></li>
+    <li>The following function demonstrates a more apt use of <b>FUNCALL</b>.<br/>
+        It accepts a function object as an argument and plots a simple ASCII-art histogram of the values returned by the argument function when it's invoked on the values from <code>min</code> to <code>max</code>, stepping by <code>step</code>.</li>
+<pre><code>
+(defun plot (fn min max step)
+  (loop for i from min to max by step do
+    (loop repeat (funcall fn i) do (format t "*"))
+    (format t "~%")))
+
+(plot #'exp 0 4 1/2)
+*
+*
+**
+****
+*******
+************
+********************
+*********************************
+******************************************************
+NIL
+</code></pre>
     <br/>
     <br/>
-    <li></li>
+    <li><b>APPLY</b> calls a function with arguments, where the last argument to apply must be a <u>list of remaining arguments</u> (empty list <code>()</code> / <code>'()</code> is also ok).<br/><br/>
+        <code>(apply &lt;function&gt; &lt;arg1&gt; &lt;arg2&gt; ... &lt;last-arg-list&gt;)</code></li>
     <br/>
     <br/>
-    <li></li>
+    <br/>
+    <li>Example with <b>APPLY</b>:<br/>
+        <code>(apply #'+ 1 2 '(3 4 5))</code> is equal to <code>(+ 1 2 3 4 5)</code>, which returns 15.
+    </li>
     <br/>
     <br/>
-    <li></li>
+    <br/>
+    <li><b>REDUCE</b> repeatedly applies a function pairwise to the elements of a list to "combine" them into a single result.<br/><br/>
+        <code>(reduce &lt;function&gt; &lt;sequence&gt; &amp;key :initial-value :from-end)</code><br/><br/>
+        Therefore, <code>(reduce f '(a b c d))</code> is equivalent to <code>(f (f (f a b) c) d)</code></li>
+    <br/>
+    <br/>
+    <br/>
+    <li>Example with <b>REDUCE</b>:<br/>
+        <code>(reduce #'+ '(1 2 3 4) :initial-value 0)</code>
+        is equivalent to <code>(+ (+ (+ (+ 0 1) 2) 3) 4)</code>, which returns 10.</li>
+    <br/>
     <br/>
     <br/>
     <li></li>
@@ -956,11 +988,14 @@ a * (b + c) / d
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>The difference between (3 4 5) and '(3 4 5)</h3>
 <ol>
-    <li></li>
+    <li><code>(3 4 5)</code> is a function call.<br/>
+        In Lisp, anything inside parentheses is treated as a function call unless you explicitly prevent evaluation.</li>
     <br/>
-    <li></li>
+    <br/>
+    <li><code>'(3 4 5)</code> is a quoted list — a literal value.<br/>
+        The single quote ( <code>'</code> ) is shorthand for </code>(quote ...)</code>.</li>
     <br/>
 </ol>
 <br/>
