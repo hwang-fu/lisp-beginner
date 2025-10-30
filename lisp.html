@@ -977,6 +977,40 @@ NIL
     <br/>
     <br/>
     <br/>
+    <li>Anonymous functions are created with <code>(lambda (args...) body...)</code>.<br/>
+        They produce a function object (often called a <i>closure</i> when it captures variables).<br/>
+        To pass/call them, use a function designator: <code>#'(lambda ...)</code>.</li>
+<pre><code>
+(funcall #'(lambda (x y) (+ x y)) 3 4)
+;; 7
+
+
+
+
+(apply #'(lambda (&amp;rest xs) (reduce #'+ xs :initial-value 0)) '(1 2 3))
+;; 6
+
+
+
+
+(defun make-counter (&amp;optional (start 0))
+  (let ((n start))
+    #'(lambda () (incf n))))
+
+(let ((next (make-counter 10)))
+  (list (funcall next) (funcall next) (funcall next)))
+
+;; Example of closure: (11 12 13)
+
+</code></pre>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+    <br/>
     <li></li>
     <br/>
 </ol>
