@@ -74,6 +74,10 @@
         color: yellow;
     }
 
+    .hl-grey-fg {
+        color: grey;
+    }
+
     .red-underline {
         text-decoration-line: underline;
         text-decoration-color: red;
@@ -85,7 +89,7 @@
         font-family: "KaiTi", "楷体", "STKaiti", "Kaiti SC", serif;
     }
 
-    li {
+    ul > li {
         list-style-type: disc;
     }
 
@@ -357,7 +361,7 @@ a * (b + c) / d
     <li>If there is no type declaration for variables in Lisp, you can directly specify a value for a symbol with the <code>setq</code> construct.</li>
     <br/>
     <br/>
-    <li>There are two constructs: <code>let</code> and <code>prog</code>(no longer commonly used) for creating local variables.</li>
+    <li>There are two constructs: <code>let</code> and <code>prog</code> (no longer commonly used) for creating local variables.</li>
     <br/>
     <br/>
     <li>The <code>let</code> construct has the following syntax.<br/>
@@ -404,9 +408,55 @@ a * (b + c) / d
 <!-- * * * * * * * * * * * * * * -->
 <h3>Basics about Symbol</h3>
 <ol>
-    <li></li>
+    <li>There are 10 characters that serve other syntactic purposes can NOT appear in names:</li>
     <br/>
-    <li></li>
+    <ul>
+        <li>Open Parentheses (<code> ( </code>)</li>
+        <br/>
+        <li>Close Parentheses (<code> ) </code>)</li>
+        <br/>
+        <li>Double Quote (<code> " </code>)</li>
+        <br/>
+        <li>Single Quote (<code> ' </code>)</li>
+        <br/>
+        <li>Backtick (<code> ` </code>)</li>
+        <br/>
+        <li>Comma (<code> , </code>)</li>
+        <br/>
+        <li>Colon (<code> : </code>)</li>
+        <br/>
+        <li>Semicolon (<code> ; </code>)</li>
+        <br/>
+        <li>Backslash (<code> \ </code>)</li>
+        <br/>
+        <li>Vertical Bar (<code> | </code>)</li>
+        <br/>
+    </ul>
+    <br/>
+    <li>If you really want to use those character,
+        try to escape them with a backslash (<code> \ </code>)<br/>
+        or surround the part of the name containing characters that need escaping
+        with vertical bars (<code> | </code>).</li>
+<pre><code>
+    (defun test\,-lisp ()
+      (write-line "Hello, world!"))
+    (test\,-lisp)
+
+    (defun |test,-lisp| ()
+      (write-line "Hello, world!"))
+    (|test,-lisp|)
+
+    (defun | test,-lisp | ()
+      (write-line "Hello, world!"))
+    (| test,-lisp |)
+</code></pre>
+    <br/>
+    <br/>
+    <li><mark>NOTE</mark>:
+        The symbol names are <u>case-insensitive</u>,
+        it converts all unescaped characters to upper case,
+        like <i>foo</i>, <i>Foo</i>, and <i>FOO</i> are the same.<br/>
+        Furthermore, the f\o\o and |foo| will both be read as foo.</li>
     <br/>
 </ol>
 <br/>
@@ -419,9 +469,54 @@ a * (b + c) / d
 <!-- * * * * * * * * * * * * * * -->
 <h3>Keyword Symbols</h3>
 <ol>
-    <li></li>
+    <li>Keyword symbols are prefixed with a colon (e.g., <code>:name</code>, <code>:id</code>).<br/>
+        This prefix automatically makes them part of the <b>KEYWORD</b> package.</li>
     <br/>
-    <li></li>
+    <br/>
+    <li>Unlike regular symbols, keyword symbols <u>evaluate to themselves</u>.</li>
+<pre><code>
+    &gt; :example
+    :EXAMPLE
+
+    &gt; :EXample
+    :EXAMPLE
+
+    &gt; :\example
+    :|eXAMPLE|
+
+    &gt; :a\,b
+    :|A,B|
+
+    &gt; :123
+    :|123|
+
+    &gt; :123abc
+    :123ABC
+
+    &gt; :abc123
+    :ABC123
+
+    &gt; :|xyz|
+    :|xyz|
+</code></pre>
+    <br/>
+    <br/>
+    <li>Keyword symbols are often used as keys in property list.</li>
+<pre><code>
+    &gt; (setq person '(:name "Alice" :age 20))
+    &gt; (getf person :name)
+    "Alice"
+</code></pre>
+<pre><code class="hl-grey-fg">
+    ; Btw, (setq person (:name "Alice" :age 20)) is invalid, because Lisp will tru to eval as if :name were a function.
+    ; You can also use (setq person (list :name "Alice" :age 20)) instead.
+</code></pre>
+    <br/>
+    <br/>
+    <li>Many libraries use keyword symbols for configuration settings.</li>
+<pre><code>
+    (open "settings.conf", :direction :output)
+</code></pre>
     <br/>
 </ol>
 <br/>
@@ -436,6 +531,15 @@ a * (b + c) / d
 <ol>
     <li>Syntax:<code> (if &lt;cond&gt; &lt;then&gt; [&lt;else&gt;]) </code></li>
     <br/>
+    <ul>
+        <li><i>cond</i> is a condition that eval to either NIL (false) or non-NIL (true).</li>
+        <br/>
+        <li><i>then</i> is the expression to exec if <i>cond</i> is true.</li>
+        <br/>
+        <li><i>else</i> is the optional expression to exec if <i>cond</i> is false.</li>
+        <br/>
+    </ul>
+    <br/>
     <br/>
     <li>Basic Example:</li>
 <pre><code>
@@ -444,14 +548,25 @@ a * (b + c) / d
       (write-line "10 &lt;= 5"))
 </code></pre>
     <br/>
-    <li></li>
+    <li>Without <i>else</i> expression:</li>
+<pre><code>
+    (if (= 1 1) (write-line "1 equals 1"))
+</code></pre>
     <br/>
     <br/>
-    <li></li>
+    <li>Nested <i>if</i>: </li>
+<pre><code>
+    (if (&gt; 10 5)
+      (if (&lt; 3 4)
+        (write-line "10 &gt; 5 and 3 &lt; 4")
+        (write-line "10 &gt; 5 and 3 &gt;= 4"))
+      (write-line "10 &lt;= 5"))
+</code></pre>
     <br/>
     <br/>
-    <li></li>
-    <br/>
+    <li>The <i>if</i> expression returns the result of the evaluated <i>then</i> or <i>else</i> form.</li>
+<pre><code>
+</code></pre>
 </ol>
 <br/>
 <!-- * * * * * * * * * * * * * * -->
