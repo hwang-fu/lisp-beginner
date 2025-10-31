@@ -409,14 +409,15 @@ a * (b + c) / d
     <br/>
     <br/>
     <br/>
-    <li>Syntax: <code>defmacro &lt;macro-name&gt; &lt;lambda-list&gt; [&lt;doc-string&gt;] [&lt;decl&gt;]* &lt;form&gt;*</code></li>
+    <li>Syntax: <code>defmacro &lt;macro-name&gt; (&lt;lambda-list&gt; [&lt;doc-string&gt;] [&lt;decl&gt;]* &lt;form&gt;*)</code></li>
     <ul>
         <br/>
         <li><i>defmacro</i>: The defining keyword.</li>
         <br/>
         <li><i>macro-name</i>: The name of the macro (a symbol).</li>
         <br/>
-        <li><i>lambda-list</i>:The parameter list, receives un-evaluates forms.</li>
+        <li><i>lambda-list</i>:The parameter list, receives un-evaluates forms. Also supports &amp;optional, &amp;key like in the <b>DEFUN</b>.<br/>
+            But in <b>DEFMACRO</b> &amp;rest is usually not used, instead &amp;body is represented as the body form.</li>
         <br/>
         <li><i>doc-string</i>: Optional. String shown by <b>DOCUMENTATION</b>.</li>
         <br/>
@@ -426,7 +427,7 @@ a * (b + c) / d
     </ul>
     <br/>
     <br/>
-    <li>Examples:</li>
+    <li>Example:</li>
 <pre><code>
     (defmacro my-when (test &amp;body body)
       "If TEST is true, execute BODY like (progn ...)."
@@ -444,10 +445,45 @@ a * (b + c) / d
 </code></pre>
     <br/>
     <br/>
-    <li></li>
+    <li>More advanced example(s):</li>
+<pre><code>
+(defmacro echo-times (&amp;body body &amp;key (times 1) (prefix "=&gt; "))
+  ;; Remove trailing keyword/value pairs from BODY so we only keep real forms.
+  (let* ((rev (reverse body))
+         (pure-rev
+           (loop with lst = rev
+                 ;; While the reversed list starts with a keyword/value pair,
+                 ;; drop those two cells.
+                 while (and (consp lst) (consp (cdr lst)) (keywordp (car lst)))
+                 do (setf lst (cddr lst))
+                 finally (return lst)))
+         (pure-body (reverse pure-rev)))
+    `(dotimes (i ,times)
+       (format t "~A" ,prefix)
+       (progn ,@pure-body))))
+
+(echo-times
+  (format t "Hello~%")
+  (format t "World~%")
+  :times 2
+  :prefix "[*] ")
+
+
+
+(defmacro with-prefix ((&amp;key (prefix "=&gt; ") (times 1)) &amp;body body)
+  `(dotimes (i ,times)
+     (format t "~A" ,prefix)
+     (progn ,@body)))
+
+(with-prefix (:prefix "[*] " :times 2)
+  (format t "Hello~%")
+  (format t "World~%"))
+
+
+</code></pre>
     <br/>
     <br/>
-    <li></li>
+    <li>The <i>declaration</i> part of <b>DEFMACRO</b>: Will be covered in the future...</li>
     <br/>
 </ol>
 <br/>
