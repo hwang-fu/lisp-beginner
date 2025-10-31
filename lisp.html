@@ -429,6 +429,27 @@ a * (b + c) / d
     <br/>
     <li>Common Lisp supports <u>variable shadowing</u>.</li>
     <br/>
+    <br/>
+    <li>Common Lisp provides two ways to create global variables:
+        <b>DEFVAR</b> and <b>DEFPARAMETER</b>.<br/>
+        Both forms take a variable <i>name</i>, an initial <i>value</i>, and an <i>optional documentation string</i>.</li>
+    <br/>
+    <br/>
+    <li>Global variables are conventionally named with names that start and end with <code>*</code> (e.g., <code>*db*</code>).</li>
+<pre><code>
+(defvar *count* 0
+  "Count of widgets made so far.")
+
+(defparameter *gap-tolerance* 0.001
+  "Tolerance to be allowed in widget gaps.")
+</code></pre>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
 </ol>
 <br/>
 <!-- * * * * * * * * * * * * * * -->
@@ -453,11 +474,33 @@ a * (b + c) / d
   (list a b c))         ; (2 5 20)
 </code></pre>
     <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3>Difference between <code>DEFVAR</code> and <code>DEFPARAMETER</code></h3>
+<ol>
+    <li><code>DEFVAR</code>: does not overwrite an existing value.</li>
+<pre><code>
+(sbcl) (defvar *x* 10)
+(sbcl) (defvar *x* 20)
+(sbcl) *x*
+    10
+</code></pre>
     <br/>
-    <li></li>
     <br/>
-    <br/>
-    <li></li>
+    <li><code>DEFPARAMETER</code>: always resets the value.</li>
+<pre><code>
+(sbcl) (defparameter *x* 10)
+(sbcl) (defparameter *x* 20)
+(sbcl) *x*
+    20
+</code></pre>
     <br/>
 </ol>
 <br/>
