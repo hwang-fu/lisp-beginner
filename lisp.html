@@ -1307,6 +1307,76 @@ NIL
 
 
 <!-- * * * * * * * * * * * * * * -->
+<h3>AND, OR, and NOT</h3>
+<ol>
+    <li><b>AND</b> evaluates the arguments from left to right. <code>(and &lt;expr1&gt; &lt;expr2&gt; ... &lt;exprN&gt;)</code><br/>
+        It returns:</li>
+    <ul>
+        <br/>
+        <li>The first falsy (<code>NIL</code>) value it encounters.</li>
+        <br/>
+        <li>Or the last value if all are true.</li>
+    </ul>
+    <br/>
+    <br/>
+    <li><b>OR</b> evaluates the arguments from left to right. <code>(or &lt;expr1&gt; &lt;expr2&gt; ... &lt;exprN&gt;)</code><br/>
+        It returns:</li>
+    <ul>
+        <br/>
+        <li>The first non-falsy (non-<code>NIL</code>) value it encounters.</li>
+        <br/>
+        <li>Or <code>NIL</code> if all are false.</li>
+
+    </ul>
+    <br/>
+    <br/>
+    <li><b>NOT</b> returns <code>T</code> if the argument is <code>NIL</code>, and <code>NIL</code> otherwise.</li>
+    <br/>
+    <br/>
+    <li>Examples:</li>
+<pre><code>
+    (and t 42 "hello")      ;; "hello"
+    (and t nil "oops")      ;; NIL
+    (and)                   ;; T
+
+    (or nil 0 "yes")        ;; 0
+    (or nil nil nil)        ;; NIL
+    (or)                    ;; NIL
+
+    (not nil)               ;; T
+    (not t)                 ;; NIL
+    (not 42)                ;; NIL (42 is truthy)
+
+</code></pre>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
 <h3></h3>
 <ol>
     <li></li>
