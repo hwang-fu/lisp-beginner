@@ -984,12 +984,12 @@ NIL
 </code></pre>
     <br/>
     <br/>
-    <li><b>APPLY</b> calls a function with arguments, where the last argument to apply must be a <u>list of remaining arguments</u> (empty list <code>()</code> / <code>'()</code> is also ok).<br/><br/>
+    <li><b>APPLY</b> calls a function with arguments, where the last argument to apply must be a <u>list of remaining arguments</u> (empty list <code>()</code> / <code>'()</code> / <code>NIL</code> is also ok).<br/><br/>
         <code>(apply &lt;function&gt; &lt;arg1&gt; &lt;arg2&gt; ... &lt;last-arg-list&gt;)</code></li>
     <br/>
     <br/>
     <br/>
-    <li>Example with <b>APPLY</b>:<br/>
+    <li>Example with <b>APPLY</b>:
         <code>(apply #'+ 1 2 '(3 4 5))</code> is equal to <code>(+ 1 2 3 4 5)</code>, which returns 15.
     </li>
     <br/>
@@ -1001,7 +1001,7 @@ NIL
     <br/>
     <br/>
     <br/>
-    <li>Example with <b>REDUCE</b>:<br/>
+    <li>Example with <b>REDUCE</b>:
         <code>(reduce #'+ '(1 2 3 4) :initial-value 0)</code>
         is equivalent to <code>(+ (+ (+ (+ 0 1) 2) 3) 4)</code>, which returns 10.</li>
     <br/>
