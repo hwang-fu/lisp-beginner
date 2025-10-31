@@ -361,7 +361,7 @@ a * (b + c) / d
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3>Variable</h3>
+<h3>Variables</h3>
 <ol>
     <li>Global variables are generally declared using the <code>defvar</code> construct.</li>
 <pre><code>
@@ -1040,11 +1040,23 @@ NIL
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>'(a b c) VS (list a b c)</h3>
 <ol>
-    <li></li>
+    <li>They are NOT the same thing!</li>
     <br/>
-    <li></li>
+    <br/>
+    <li><code>'(...)</code> is a quoted list (no evaluation).</li>
+    <br/>
+    <br/>
+    <li><code>(list a b c)</code> calls the function list, after evaluating of each argument.</li>
+    <br/>
+    <br/>
+    <li>Comparison with a real-life example:</li>
+<pre><code>
+(setq a 10 b 20 c 30)
+(list a b c)            ;; (10 20 30)
+'(a b c)                ;; (A B C)
+</code></pre>
     <br/>
 </ol>
 <br/>
