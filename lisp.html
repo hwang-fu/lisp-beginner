@@ -102,9 +102,39 @@
     }
 
     code {
-        /*color: purple;*/
-        font-family: "FiraCode Nerd Font";
-        font-size: 11.0
+        color: #24292e;                     /* text */
+        background-color: #f6f8fa;          /* bg */
+        border: 1px solid #d0d7de;          /* subtle frame */
+        border-radius: .375rem;
+        padding: .15rem .35rem;
+        font-family: "FiraCode Nerd Font", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.875rem;                /* 14px-ish; avoid bare numbers */
+        line-height: 1.4;
+        font-variant-ligatures:contextual;
+    }
+
+    /* Block code container */
+    pre {
+        margin: 1rem 0;
+        padding: .8rem 1rem;
+        background-color: #f6f8fa;       /* match inline bg */
+        border: 1px solid #d0d7de;
+        border-radius: .5rem;
+        overflow: auto;                   /* scroll if long */
+        tab-size: 4;                      /* adjust as needed */
+    }
+
+    /* Code inside pre: remove extra padding/background from inline style */
+    pre code {
+        display: block;                   /* ensure full-width */
+        padding: 0;                       /* pre handles padding */
+        background: transparent;          /* avoid double bg */
+        border: 0;                        /* avoid double border */
+        color: #24292e;
+        font-family: "FiraCode Nerd Font", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        white-space: pre;                 /* preserve spacing; use pre-wrap to wrap long lines */
     }
 </style>
 <!-- * * * * * * * * * * * * * * -->
