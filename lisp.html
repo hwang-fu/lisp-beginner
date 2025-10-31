@@ -1516,16 +1516,90 @@ NIL
     <li><b>LOOP</b> is a <u>macro</u> in Common Lisp that provides a declarative, English-like syntax for performing iterations and collecting results.</li>
     <br/>
     <br/>
-    <li></li>
+    <li>Basic syntax: <code>(loop [&lt;loop-clauses&gt;])</code></li>
     <br/>
     <br/>
-    <li></li>
+    <li>A loop is composed of clauses like:</li>
+    <ul>
+        <br/>
+        <li>Iteration: <code>for</code>, <code>from</code>, <code>to</code>, <code>downto</code>, <code>below</code>, <code>above</code>, <code>by</code></li>
+        <br/>
+        <li>List / Vectors: <code>in</code>, <code>on</code>, <code>across</code></li>
+        <br/>
+        <li>Conditions: <code>when</code>, <code>unless</code>, <code>if</code>, <code>else</code>, <code>end</code></li>
+        <br/>
+        <li>Accumulators: <code>collect</code>, <code>append</code>, <code>sum</code>, <code>count</code>, <code>maximize</code>, <code>minimize</code></li>
+        <br/>
+        <li>Size effects: <code>do</code>, <code>finally</code>, <code>return</code></li>
+        <br/>
+        <li>Control: <code>while</code>, <code>until</code>, <code>repeat</code>, <code>named</code>, <code>initially</code></li>
+    </ul>
     <br/>
     <br/>
-    <li></li>
+    <li><mark>NOTE</mark>: <b>LOOP</b> syntax is non-Lispy — it doesn't follow S-expression style.</li>
     <br/>
     <br/>
-    <li></li>
+    <li>Examples:</li>
+    <br/>
+<pre><code>
+    (loop for x in '(a b c ) do
+      (print x))
+    ;; A
+    ;; B
+    ;; C
+
+    (loop as i from 1 to 3 do (print i))
+    ;; 1
+    ;; 2
+    ;; 3
+
+    (loop for i from 1 to 3 do (print i))           ;; 1 2 3
+    (loop for i from 3 downto 1 do (print i))       ;; 3 2 1
+    (loop for i from 1 upto 3 do (print i))         ;; 1 2 3
+    (loop for i from 1 below 4 do (print i))        ;; 1 2 3
+    (loop for i from 5 above 2 do (print i))        ;; 5 4 3
+    (loop for i from 0 to 10 by 2 do (print i))     ;; 0 2 4 6 8 10
+
+    (loop repeat 3 do
+      (print "Hello"))
+    ;; "Hello"
+    ;; "Hello"
+    ;; "Hello"
+
+    (loop named my-loop
+      for i from 1 to 10 do
+        (when (= i 5) (return-from my-loop 'stopped)))
+    ;; 'STOPPED
+
+    (loop
+      initially (format t "Start~%")
+      for i from 1 to 2 do (print i))
+
+    (loop
+      for i from 1 to 2 do (print i)
+      finally (format t "Done~%"))
+
+    (loop for x in '(a b c) collect x)                  ;; (A B C)
+    (loop for tail on '(1 2 3) collect tail)            ;; ((1 2 3) (2 3) (3))
+    (loop for x across #(10 20 30) collect (* x 2))     ;; (20 40 60)
+
+    (loop
+      for i from 1 to 3
+        if (evenp i)
+          collect i
+        else
+          collect (- i)
+        end)
+    ;; (-1 2 -3)
+
+    (loop for i from 1 to 3 collect (* i i))            ;; (1 4 9)
+    (loop for x in '((a b) (c) (d e)) append x)         ;; (A B C D E)
+    (loop for i from 1 to 5 sum i)                      ;; 15
+    (loop for i in '(1 2 3 4 5) count (evenp i))        ;; 2
+    (loop for x in '(3 7 2 9 5) maximize x)             ;; 9
+    (loop for x in '(3 7 2 9 5) minimize x)             ;; 2
+
+</code></pre>
     <br/>
 </ol>
 <br/>
