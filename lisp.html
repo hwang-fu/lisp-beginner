@@ -368,20 +368,6 @@ a * (b + c) / d
 </code></pre>
     <br/>
     <br/>
-    <li>Simple Example:</li>
-<pre><code>
-    (defmacro assign10 (num)
-      "A macro that sets a given variable to value 10"
-      `(setq num 10)
-      (print num))
-
-    (setq x 100)
-    (print x)       ; 100
-    (assign10 x)    ; 10
-    (print x)       ; 100
-</code></pre>
-    <br/>
-    <br/>
     <li>Backquote Examples:</li>
     <br/>
 <table>
@@ -421,7 +407,41 @@ a * (b + c) / d
     </tbody>
 </table>
     <br/>
-    <li></li>
+    <br/>
+    <br/>
+    <li>Syntax: <code>defmacro &lt;macro-name&gt; &lt;lambda-list&gt; [&lt;doc-string&gt;] [&lt;decl&gt;]* &lt;form&gt;*</code></li>
+    <ul>
+        <br/>
+        <li><i>defmacro</i>: The defining keyword.</li>
+        <br/>
+        <li><i>macro-name</i>: The name of the macro (a symbol).</li>
+        <br/>
+        <li><i>lambda-list</i>:The parameter list, receives un-evaluates forms.</li>
+        <br/>
+        <li><i>doc-string</i>: Optional. String shown by <b>DOCUMENTATION</b>.</li>
+        <br/>
+        <li><i>decl</i>: Compiler decalarations.</li>
+        <br/>
+        <li><i>form</i>: The body. Must return code (a Lisp form), not run the code.</li>
+    </ul>
+    <br/>
+    <br/>
+    <li>Examples:</li>
+<pre><code>
+    (defmacro my-when (test &amp;body body)
+      "If TEST is true, execute BODY like (progn ...)."
+      `(if ,test
+           (progn ,@body)))
+
+    (my-when (&gt; x 10)
+      (print "positive")
+      (incf x))
+
+    Macro expansion (what Lisp actually sees):
+    (if (&gt; x 0)
+      (progn (print "positive") (incf x)))
+
+</code></pre>
     <br/>
     <br/>
     <li></li>
@@ -1688,6 +1708,51 @@ NIL
 
 
 </code></pre>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <li></li>
     <br/>
 </ol>
 <br/>
