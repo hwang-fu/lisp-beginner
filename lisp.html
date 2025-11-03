@@ -1979,8 +1979,8 @@ NIL
     (concatenate 'list #(1 2 3) '(4 5 6))       ; (1 2 3 4 5 6)
     (concatenate 'string "abc" '(#\d #\e #\f))  ; "abcdef"
 
-    (merge 'vector #(1 3 5) #(2 4 6) #'&lt;)       ; #(1 2 3 4 5 6)
-    (merge 'list #(1 3 5) #(2 4 6) #'&lt;)         ; (1 2 3 4 5 6)
+    (merge 'vector #(1 3 5) #(2 4 6) #'&lt;)    ; #(1 2 3 4 5 6)
+    (merge 'list #(1 3 5) #(2 4 6) #'&lt;)      ; (1 2 3 4 5 6)
 
     (subseq "foobarbaz" 3)                      ; "barbaz"
     (subseq "foobarbaz" 3 6)                    ; "bar"
@@ -2071,12 +2071,65 @@ NIL
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>CONS</h3>
 <ol>
-    <li></li>
+    <li>A cons cell is the fundamental 2-slot building block of Lisp lists.</li>
+    <ul>
+        <br/>
+        <li>Slot1: <b>CAR</b> (the "first" thing)</li>
+        <br/>
+        <li>Slot2: <b>CDR</b> (the "rest" / tail pointer)</li>
+    </ul>
     <br/>
     <br/>
-    <li></li>
+    <li><code>(cons a d)</code> allocates a new cons cell whose <b>CAR</b> is <code>a</code> and <b>CDR</b> is <code>d</code>.</li>
+<pre><code>
+    (cons 1 2)          ; (1 . 2)   ;; an *improper* (dotted) pair
+    (cons 1 '(2 3))     ; (1 2 3)   ;; a proper list
+    (cons 'a 'b)        ; (A . B)
+    (cons '(a b) '(c d)); ((A B) C D)
+
+</code></pre>
+    <br/>
+    <br/>
+    <li>Proper vs. improper lists:</li>
+    <ul>
+        <br>
+        <li>Proper list: chain of cons cells ending in NIL.<br/><br/>
+            <code>(1 2 3)</code> is shorthand for <code>(1 . (2 . (3 . NIL)))</code>.</li>
+        <br>
+        <li>Improper list: CDR ends with a non-NIL atom.<br/><br/>
+            <code>(1 . 2)</code> or <code>(1 2 . 3)</code>.</li>
+    </ul>
+    <br/>
+    <br/>
+    <br/>
+    <li>Basic access: <code>CAR</code> and <code>CDR</code></li>
+<pre><code>
+    (car '(10 20 30)) ; 10
+    (cdr '(10 20 30)) ; (20 30)
+    (first '(10 20))  ; 10      ; synonyms: FIRST = CAR, REST = CDR
+    (rest  '(10 20))  ; (20)
+
+    (cadr  '(a b c))  ; B   ; = (car (cdr ...))
+    (caddr '(a b c d)); C
+
+
+
+    (cons 0 '(1 2 3))       ; (0 1 2 3)   ; O(1) prepend
+    (list 1 2 3)            ; (1 2 3)     ; constructs a fresh proper list
+    (list* 1 2 3)           ; (1 2 . 3)   ; last arg becomes the final CDR (can make improper)
+    (append '(1 2) '(3 4))  ; (1 2 3 4)   ; copies all but last list; O(n) in first arg
+
+
+
+    (let ((x (list 1 2 3)))
+      (setf (car x) 99)     ; x =&gt; (99 2 3)
+      (setf (cdr x) '(7))   ; x =&gt; (99 7)
+      x)
+
+</code></pre>
+    <br/>
     <br/>
 </ol>
 <br/>
