@@ -1,4 +1,19 @@
 <!-- * * * * * * * * * * * * * * -->
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Common Lisp</title>
+
+    <!-- Theme (pick any from Prism site) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs/plugins/line-numbers/prism-line-numbers.min.css">
+
+    <!-- Prism core + Lisp language -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/plugins/autoloader/prism-autoloader.min.js"
+          data-prismjs-autoloader-path="https://cdn.jsdelivr.net/npm/prismjs/components/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
 <style>
     table {
         border-collapse: collapse;      /* merge borders so you don't get double lines */
@@ -137,12 +152,9 @@
         white-space: pre;                 /* preserve spacing; use pre-wrap to wrap long lines */
     }
 </style>
+</head>
 <!-- * * * * * * * * * * * * * * -->
-
-
-<!-- * * * * * * * * * * * * * * -->
-<script>
-</script>
+<body>
 <!-- * * * * * * * * * * * * * * -->
 
 
@@ -187,8 +199,7 @@
     <br/>
     <br/>
     <li>Genre 2:
-<pre><code>
-(defun hello-world()
+<pre><code class="language-lisp line-numbers">(defun hello-world()
     (format t "Hello World!"))
 
 (hello-world)
@@ -207,8 +218,7 @@
 <h3>Lisp Uses Prefix Notation</h3>
 <ol>
     <li>In prefix notation, operators are written before their operands.</li>
-<pre><code>
-a * (b + c) / d
+<pre><code class="language-lisp line-numbers">a * (b + c) / d
 (/ (* a (+ b c)) d)
 </code></pre>
 <br/>
@@ -236,7 +246,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>An <b>atom</b> is a number or a string of contiguous characters.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     hello-from-lisp
     12300009
     *hello*
@@ -246,7 +256,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>A <b>list</b> is a sequence of atoms and other lists enclosed in parentheses.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (this is a list)
     (a (a b c) d e f)
     (Sun Mon Tue Wed Thu Fri Sat)
@@ -255,7 +265,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>A <b>string</b> is a group of characters enclosed in double quotation mark ( " )</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     "here is a string"
     "hello"
     "Please enter a number:"
@@ -296,7 +306,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>The <code>type-of</code> function returns the data type of a given object.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (let ((x 42) (y "hello"))
       (format t "~%The type of X is: ~a" (type-of x))
       (format t "~%The type of Y is: ~a" (type-of y)))
@@ -304,7 +314,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Using scalar data types:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     ; Set values to variables.
     (setq x 10)
     (setq y 34.567)
@@ -326,7 +336,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Checking types of variables:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     ; Define variables and set values.
     (defvar x 10)
     (defvar y 34.567)
@@ -361,7 +371,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Syntax for defining a named macro:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (defmacro &lt;macro-name&gt; (&lt;param-list&gt;)
       "optional document string."
       &lt;body&gt;)
@@ -428,7 +438,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Example:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (defmacro my-when (test &amp;body body)
       "If TEST is true, execute BODY like (progn ...)."
       `(if ,test
@@ -446,7 +456,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>More advanced example(s):</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defmacro echo-times (&amp;body body &amp;key (times 1) (prefix "=&gt; "))
   ;; Remove trailing keyword/value pairs from BODY so we only keep real forms.
   (let* ((rev (reverse body))
@@ -497,7 +507,7 @@ a * (b + c) / d
 <h3>Variables</h3>
 <ol>
     <li>Global variables are generally declared using the <code>DEFVAR</code> construct.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     ; Define a global variable x with a value of `100`
     (defvar x 100)
     ; Print the value of `x`
@@ -513,7 +523,7 @@ a * (b + c) / d
     <br/>
     <li>The <code>LET</code> construct has the following syntax.<br/>
         If you did NOT include an initial value for a variable, it is assigned <code>NIL</code>.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (let ((var-1 val-1) (var-2 val-2) ... (var-n val-n))
       &lt;s-expression&gt;
       &lt;s-expression&gt;
@@ -522,7 +532,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>The <code>PROG</code> construct has the following syntax.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (prog (var-1 var-2 ... var-n)
       &lt;s-expression&gt;
       &lt;s-expression&gt;
@@ -539,7 +549,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Global variables are conventionally named with names that start and end with <code>*</code> (e.g., <code>*db*</code>).</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defvar *count* 0
   "Count of widgets made so far.")
 
@@ -549,7 +559,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li><b>DEFCONSTANT</b> defines a named global constant.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (sbcl) (defconstant +pi+ 3.1415926 "Approximation of PI")
 (sbcl) +pi+
     3.1415926
@@ -565,7 +575,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li><b>SETF</b> can also assign to multiple places in sequence.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (setf x 1)
 (setf y 1)
 
@@ -578,7 +588,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>You could increment / decrement a number with <b>SETF</b>:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (setf x (+ x 1));   (incf x)
     (setf x (+ x 10));  (incf x 10)
     (setf x (- x 1));   (decf x)
@@ -587,7 +597,7 @@ a * (b + c) / d
     <br/>
     <li><b>ROTATEF</b>: swaps values in-place by rotating them left-wise, returns <b>NIL</b>.<br/>
         <mark>NOTE</mark>: All places (variables, array elements, etc.) must be writable with <b>SETF</b>.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (rotatef &lt;place1&gt; &lt;place2&gt; ... &lt;placeN&gt;)
 
     place1 &lt;- place2
@@ -604,7 +614,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li><b>SHIFTF</b> shifts values left-wise and returns the original first value.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (shiftf &lt;place1&gt; &lt;place2&gt; ... &lt;placeN&gt; &lt;new-value&gt;)
 
     place1 &lt;- place2
@@ -635,7 +645,7 @@ a * (b + c) / d
     <li><code>LET*</code>:
         Variables are initialized one by one in sequence,
         left to right, and each one can use the previous ones.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (let* ((a 2)
        (b (+ a 3))      ; b = 2 + 3 = 5
        (c (* b 4)))     ; c = 5 * 4 = 20
@@ -654,7 +664,7 @@ a * (b + c) / d
 <h3>Difference between <code>DEFVAR</code> and <code>DEFPARAMETER</code></h3>
 <ol>
     <li><code>DEFVAR</code>: re-decl does not overwrite an existing value (can be later changed with assignment).</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (sbcl) (defvar *x* 10)
 (sbcl) (defvar *x* 20)
 (sbcl) *x*
@@ -663,7 +673,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li><code>DEFPARAMETER</code>: re-decl always resets the value.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (sbcl) (defparameter *x* 10)
 (sbcl) (defparameter *x* 20)
 (sbcl) *x*
@@ -682,7 +692,7 @@ a * (b + c) / d
 <h3>Escape Character</h3>
 <ol>
     <li>A backslash ( <code>\</code> ) escapes the next character, causing it to be included in the string regardless of what it is.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     "foo"       ; foo
     "f\oo"      ; foo,  because `\o` escapes `o`, treating it iterally like the character `o`.
     "fo\\o"     ; fo\o
@@ -729,7 +739,7 @@ a * (b + c) / d
         try to escape them with a backslash (<code> \ </code>)<br/>
         or surround the part of the name containing characters that need escaping
         with vertical bars (<code> | </code>).</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (defun test\,-lisp ()
       (write-line "Hello, world!"))
     (test\,-lisp)
@@ -766,7 +776,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Unlike regular symbols, keyword symbols <u>evaluate to themselves</u>.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     &gt; :example
     :EXAMPLE
 
@@ -794,7 +804,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Keyword symbols are often used as keys in property list.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     &gt; (setq person '(:name "Alice" :age 20))
     &gt; (getf person :name)
     "Alice"
@@ -806,7 +816,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Many libraries use keyword symbols for configuration settings.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (open "settings.conf", :direction :output)
 </code></pre>
     <br/>
@@ -834,20 +844,20 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Basic Example:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (if (&gt; 10 5)
       (write-line "10 &gt; 5")
       (write-line "10 &lt;= 5"))
 </code></pre>
     <br/>
     <li>Without <i>else</i> expression:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (if (= 1 1) (write-line "1 equals 1"))
 </code></pre>
     <br/>
     <br/>
     <li>Nested <i>if</i>: </li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (if (&gt; 10 5)
       (if (&lt; 3 4)
         (write-line "10 &gt; 5 and 3 &lt; 4")
@@ -857,7 +867,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>The <i>if</i> expression returns the result of the evaluated <i>then</i> or <i>else</i> form.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (let ((x 10))
       (if (&gt; x 5) (+ x 10) (- x 10)))
 </code></pre>
@@ -880,7 +890,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Example Usage:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     &gt; (quote (+ 1 2))
     (+ 1 2)
 
@@ -919,14 +929,14 @@ a * (b + c) / d
     <br/>
     <br/>
     <li><b>EQ</b> checks whether two values are literally the same object: the same address, same identity.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (eq 1000 1000)   ;; might be NIL on some Lisps
     (eq 'foo 'foo)   ;; always T (same interned symbol)
 </code></pre>
     <br/>
     <br/>
     <li><b>EQL</b> is just like <b>EQ</b>, but slightly stronger: it also considers numbers and characters with the same value as equal.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (eql 1000 1000)  ;; always T
     (eql 1.0 1)      ;; NIL (different types)
     (eql #\A #\A)    ;; T
@@ -934,7 +944,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li><b>EQUAL</b> compares structural lists and strings (and bit-vectors).</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (equal '(a (b)) '(a (b)))   ;; T
     (equal "Foo" "Foo")         ;; T
     (equal "Foo" "foo")         ;; NIL (case-sensitive)
@@ -944,7 +954,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li><b>EQUALP</b> is more forgiving: case-insensitive for strings and characters, and value comparison for numbers.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (equalp "Foo" "foo")        ;; T
     (equalp #\A #\a)            ;; T
     (equalp 1 1.0)              ;; T
@@ -967,7 +977,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Syntax:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (cond
       (&lt;cond-1&gt; &lt;form-1-1&gt; &lt;form-1-2&gt; ...)
       (&lt;cond-2&gt; &lt;form-2-1&gt; &lt;form-2-2&gt; ...)
@@ -987,7 +997,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Example Usage:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (defun categorize-number (x)
       (cond
         ((&lt; x 0) "negative")
@@ -1021,7 +1031,7 @@ a * (b + c) / d
 <ol>
     <li>Normally functions are defined using the <b>DEFUN</b> macro.<br/>
         The basic skeleton of a <b>DEFUN</b> looks like this:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defun &lt;function-name&gt; (&lt;param-list&gt;)
   "Optional documentation string."
   &lt;function-body&gt;)
@@ -1042,7 +1052,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Example of a function:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defun verbose-sum (x y)
   "Sum any two numbers after printing a message."
   (format t "Summing ~d and ~d.~%" x y)
@@ -1060,7 +1070,7 @@ a * (b + c) / d
         after the names of any <u>required parameters</u>,
         place the symbol <b>&amp;optional</b> followed by the name(s) of the <u>optional parameters</u>.
     </li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defun foo (a b &amp;optional c d)
   (list a b c d))
 
@@ -1087,7 +1097,7 @@ a * (b + c) / d
     <li>Occasionally,
         it's useful to know whether the value of an optional argument was supplied by the caller or is the default value.<br/>
         By convention, these variables are usually named the same as the actual parameter with a <code>"-supplied-p"</code> suffix.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defun foo (a b &amp;optional (c 3 c-supplied-p))
   (list a b c c-supplied-p))
 
@@ -1099,7 +1109,7 @@ a * (b + c) / d
     <li>Lisp lets you include a catchall parameter after the symbol <b>&amp;rest</b>.<br/>
         It should be placed after the <u>required parameter(s)</u> and <u>optional parameter(s)</u>.
     </li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defun sum (&amp;rest nums)
   (reduce #'+ nums :initial-value 0))
 
@@ -1110,7 +1120,7 @@ a * (b + c) / d
     <br/>
     <li>To give a function keyword parameters, after any <u>required</u>, <u>optional</u>, and <u>rest</u> parameters,<br/>
         you include the symbol <b>&amp;key</b> and then any number of keyword parameter specifiers.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defun foo (&amp;key a b c)
   (list a b c))
 
@@ -1136,7 +1146,7 @@ a * (b + c) / d
     <br/>
     <br/>
     <li>Also, you can have keyword alias (it must be in a list):</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defun foo (&amp;key ((:apple a)) ((:banana b) 0) ((:cherry c) 0 c-supplied-p))
   (list a b c c-supplied-p))
 
@@ -1169,7 +1179,7 @@ a * (b + c) / d
         However, <b>DEFUN</b> automatically wraps the whole function body in a block with the same name as the function.<br/>
         So, evaluating a <b>RETURN-FROM</b> with the <u>name of the function</u> and the <u>value</u> you want to return will cause the function to immediately exit with that value.</li>
     </li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defun first-positive (xs)
   (dolist (x xs)
     (when (plusp x)
@@ -1192,7 +1202,7 @@ a * (b + c) / d
 <ol>
     <li>The special operator <b>FUNCTION</b> provides the mechanism for getting at a function object.<br/>
         It takes a single argument and returns the function with that name. The syntax <b>#'</b>, is a syntactic sugar for <b>FUNCTION</b></li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (sbcl) (defun foo (x) (* 2 x))
     FOO
     (sbcl) (function foo)
@@ -1208,7 +1218,7 @@ a * (b + c) / d
     <br/>
     <li>The following function demonstrates a more apt use of <b>FUNCALL</b>.<br/>
         It accepts a function object as an argument and plots a simple ASCII-art histogram of the values returned by the argument function when it's invoked on the values from <code>min</code> to <code>max</code>, stepping by <code>step</code>.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defun plot (fn min max step)
   (loop for i from min to max by step do
     (loop repeat (funcall fn i) do (format t "*"))
@@ -1254,7 +1264,7 @@ NIL
     <li>Anonymous functions are created with <code>(lambda (args...) body...)</code>.<br/>
         They produce a function object (often called a <i>closure</i> when it captures variables).<br/>
         To pass/call them, use a function designator: <code>#'(lambda ...)</code>.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (funcall #'(lambda (x y) (+ x y)) 3 4)
 ;; 7
 
@@ -1317,7 +1327,7 @@ NIL
     <br/>
     <br/>
     <li>Comparison with a real-life example:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (setq a 10 b 20 c 30)
 (list a b c)            ;; (10 20 30)
 '(a b c)                ;; (A B C)
@@ -1341,7 +1351,7 @@ NIL
     <br/>
     <br/>
     <li>Example:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (progn
       (format t "Step 1~%")
       (format t "Step 2~%")
@@ -1368,7 +1378,7 @@ NIL
     <li><b>WHEN</b> is like a simplified IF that only has a then branch (no else).<br/>
         If the condition is true, it executes one or more expressions.</li>
     <br/>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (let ((x 5))
       (when (&gt; x 0)
         (format t "x is positive~%")
@@ -1391,7 +1401,7 @@ NIL
 <ol>
     <li><b>UNLESS</b> is the logical opposite of <b>WHEN</b>. If the condition is false (<code>NIL</code>), it executes the body.</li>
     <br/>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (let ((x 0))
   (unless (&gt; x 0)
     (format t "x is not positive~%")
@@ -1437,7 +1447,7 @@ NIL
     <br/>
     <br/>
     <li>Examples:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (and t 42 "hello")      ;; "hello"
     (and t nil "oops")      ;; NIL
     (and)                   ;; T
@@ -1476,7 +1486,7 @@ NIL
         <li><i>return-value</i>: Expression evaluated and returned after the loop finishes.</li>
     </ul>
     <br/>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (dolist (x '(a b c))
   (format t "Element: ~A~%" x))
 ;; Element: A
@@ -1498,7 +1508,7 @@ NIL
         <li>The loop counter starts at <i>0</i> and ends at <i>N-1</i>, exactly <i>N</i> iterations.</li>
         <br/>
     </ul>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (dotimes (i 5)
   (format t "i = ~A~%" i))
 ;; i = 0
@@ -1531,7 +1541,7 @@ NIL
     <br/>
     <br/>
     <li>Syntax:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (do ((&lt;var1&gt; &lt;init1&gt; [&lt;step1&gt;])
      (&lt;var2&gt; &lt;init2&gt; [&lt;step2&gt;])
      ...
@@ -1557,7 +1567,7 @@ NIL
     <br/>
     <br/>
     <li>Basic Example:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (do ((i 0 (+ i 1)))
     ((&gt;= i 5) 'done)
   (format t "i = ~A~%" i))
@@ -1592,7 +1602,7 @@ NIL
     <br/>
     <br/>
     <li>Early exit using <b>RETURN</b>:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (do ((i 0 (+ i 1)))
     (nil)           ; end test is NIL, infinite loop unless broken
   (when (= i 3) (return 'early))
@@ -1644,7 +1654,7 @@ NIL
     <br/>
     <li>Examples:</li>
     <br/>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (loop for x in '(a b c ) do
       (print x))
     ;; A
@@ -1717,7 +1727,7 @@ NIL
 <ol>
     <li>Quote (<code>'</code> or <code>(quote ...)</code>): Don't evaluate, take it as data (prevents the usual evaluation of lists/symbols.).</li>
     <br/>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 'foo            ;; FOO            ; a symbol, not the value of variable FOO
 (quote foo)     ;; same as above
 
@@ -1733,7 +1743,7 @@ NIL
         <br/>
         <li><code>,@expr</code> (unquote-splicing): evaluates expr and splices its elements into the surrounding list.</li>
     </ul>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (let ((a 10) (b '(x y)))
       `(+ ,a 20)                ;; (+ 10 20)    NOTE: it evals a template to a list (not 30 that no further evaluation by far!).
       `(1 2 ,a ,@b 99))         ;; (1 2 10 X Y 99)
@@ -1757,7 +1767,7 @@ NIL
 <h3>Destructing Parameter in DEFMACRO</h3>
 <ol>
     <li>When you define a macro, you tell Lisp how to map the call form into symbols that you can use inside the macro body.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defmacro simple (x y)
   `(list ,x ,y))
 
@@ -1769,7 +1779,7 @@ NIL
     <br/>
     <li>In a <b>DEFMACRO</b>,
         your lambda list doesn't just bind symbols to arguments — it can pattern-match the entire shape of the call form.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 (defmacro swap! ((a b))
   `(let ((temp ,a))
      (setf ,a ,b
@@ -1836,7 +1846,7 @@ NIL
     <br/>
     <li>Simplest way to construct a fixed-size vector with existing elements,
         is to use either <code>(vector [&lt;elements&gt;])</code> or <code>#(&lt;elements&gt;)</code> syntax:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (vector)
     #()
 
@@ -1850,7 +1860,7 @@ NIL
     <br/>
     <br/>
     <li><b>MAKE-ARRAY</b> is much more vesatile;</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (make-array 5 :initial-element nil);    #(NIL NIL NIL NIL NIL)
 
 
@@ -1889,7 +1899,7 @@ NIL
     <br/>
     <br/>
     <li>Vector as sequence:</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 	(sbcl)    (defparameter *x* (vector 1 2 3))
 
 	(sbcl)    (length *x*); 3
@@ -1941,7 +1951,7 @@ NIL
             </tr>
         </tbody>
     </table>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
 
     (count 1 #(1 2 1 2 3 1 2 3 4))        ;		3
     (remove 1 #(1 2 1 2 3 1 2 3 4))       ;		#(2 2 3 2 3 4)
@@ -2083,7 +2093,7 @@ NIL
     <br/>
     <br/>
     <li><code>(cons a d)</code> allocates a new cons cell whose <b>CAR</b> is <code>a</code> and <b>CDR</b> is <code>d</code>.</li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (cons 1 2)          ; (1 . 2)   ;; an *improper* (dotted) pair
     (cons 1 '(2 3))     ; (1 2 3)   ;; a proper list
     (cons 'a 'b)        ; (A . B)
@@ -2105,7 +2115,7 @@ NIL
     <br/>
     <br/>
     <li>Basic access: <code>CAR</code> and <code>CDR</code></li>
-<pre><code>
+<pre><code class="language-lisp line-numbers">
     (car '(10 20 30)) ; 10
     (cdr '(10 20 30)) ; (20 30)
     (first '(10 20))  ; 10      ; synonyms: FIRST = CAR, REST = CDR
@@ -2217,4 +2227,8 @@ NIL
 
 
 <hr/>
-
+<!-- * * * * * * * * * * * * * * -->
+<body>
+<!-- * * * * * * * * * * * * * * -->
+</html>
+<!-- * * * * * * * * * * * * * * -->
