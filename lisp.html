@@ -11,7 +11,7 @@
     <!-- Prism core + Lisp language -->
     <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-core.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs/plugins/autoloader/prism-autoloader.min.js"
-          data-prismjs-autoloader-path="https://cdn.jsdelivr.net/npm/prismjs/components/"></script>
+            data-prismjs-autoloader-path="https://cdn.jsdelivr.net/npm/prismjs/components/"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs/plugins/line-numbers/prism-line-numbers.min.js"></script>
 
 <style>
@@ -2027,12 +2027,103 @@ NIL
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>SET, SEQ and SETF</h3>
 <ol>
-    <li></li>
+    <li>Overview</li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Operator</th>
+                <th>Type</th>
+                <th>Evaluates 1st arg?</th>
+                <th>Assigns to</th>
+                <th>Works for</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>SETQ</code></td>
+                <td>Special operator</td>
+                <td class="hl-red-fg">No</td>
+                <td>Lexical or special variables</td>
+                <td>Variables only</td>
+                <td>Fastest</td>
+            </tr>
+            <tr>
+                <td><code>SETF</code></td>
+                <td>Macro</td>
+                <td class="hl-green-fg">Partially (place-specific)</td>
+                <td>Generalized places</td>
+                <td>Variables, array slots, struct slots, hash entries, accessors, ...</td>
+                <td>Most general</td>
+            </tr>
+            <tr>
+                <td><code>SET</code></td>
+                <td>Function</td>
+                <td class="hl-green-fg">Yes</td>
+                <td>Global / special value cell of a symbol</td>
+                <td>Symbols only</td>
+                <td>Dynamic only; NEVER lexical</td>
+            </tr>
+        </tbody>
+    </table>
     <br/>
     <br/>
-    <li></li>
+    <li><b>SETQ</b> does not evaluate the variable name, and works on lexical variables (from <code>let</code>) and special/global variables.</li>
+    <br/>
+<pre><code class="language-lisp line-numbers">(let ((a 1))
+  (setq a 2)   ; modifies lexical A
+  a)
+;; 2
+</code></pre>
+    <br/>
+    <br/>
+    <li><b>SETF</b> is designed to be the general assignment operator, and works on simple variables (like <code>setq</code>) and complex places.</li>
+    <br/>
+<pre><code class="language-lisp line-numbers">(setf x 10)                     ; variable
+(setf (car mylist) 3)           ; list cell
+(setf (slot-value obj 'age) 25) ; CLOS slot
+(setf (gethash 'a table) 9)     ; hash table key
+(setf (aref arr 3) 22)          ; array
+(setf my-struct-field 100)      ; accessor
+</code></pre>
+    <br/>
+    <br/>
+    <li><b>SET</b> evaluates its first argument and its result must be a symbol. It only modifies the symbol's global/special value, not lexicals.<br/><br/>
+        Because it is a Function. Functions in Lisp evaluate all their arguments before the function is called.</li>
+    <br/>
+<pre><code class="language-lisp line-numbers">(set 'a 100)
+a
+;; 100
+
+
+(let ((a 1))
+  (set 'a 200))     ; Sets GLOBAL A, not this lexical A
+a                   ; global A =&gt; 200
+
+
+(let ((x 10))
+  (set x 20))       ; ERROR: X holds 10, not a symbol
+
+
+
+
+;; Global A
+(set 'a 100)        ; sets global A = 100
+
+(setq a 'b)         ; a now holds the symbol B
+(set a 100)         ; sets global B = 100
+
+(setq a 42)         ; replace `setq` here with `setf` is also ok.
+(set a 100)         ; ERROR: 42 is not a symbol
+
+(let ((a 1))
+  (set 'a 999)      ; sets global A, lexical a still 1
+  a)                ; 1
+</code></pre>
+    <br/>
     <br/>
 </ol>
 <br/>
@@ -2105,7 +2196,7 @@ NIL
 
 <hr/>
 <!-- * * * * * * * * * * * * * * -->
-<body>
+</body>
 <!-- * * * * * * * * * * * * * * -->
 </html>
 <!-- * * * * * * * * * * * * * * -->
