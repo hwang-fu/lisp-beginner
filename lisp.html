@@ -4398,6 +4398,225 @@ CL-USER&gt; (my-app::start-ap)
 
 
 <!-- * * * * * * * * * * * * * * -->
+<h3>Package Designators: <code>:my-app</code> VS <code>"MY-APP"</code></h3>
+<ol>
+    <li><b>The confusion</b></li>
+    <br/>
+    <ul>
+        <li>You see code like this:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defpackage :my-app
+  (:use :cl))
+
+(in-package :my-app)
+
+(find-symbol "FOO" "MY-APP")
+(intern "BAR" "MY-APP")
+</code></pre>
+    <br/>
+    <ul>
+        <li>Sometimes the package is written as <code>:my-app</code> (a keyword symbol).</li>
+        <li>Sometimes as <code>"MY-APP"</code> (a string).</li>
+        <li>So... <b>which is correct</b>, and why both work?</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Package designator: multiple types allowed</b></li>
+    <br/>
+    <ul>
+        <li>Many functions that work with packages (like <code>FIND-SYMBOL</code>, <code>INTERN</code>, <code>FIND-PACKAGE</code>) accept a <b>package designator</b>.</li>
+        <br/>
+        <li>A <b>package designator</b> can be:
+            <ul>
+                <br/>
+                <li>a <b>string</b> → interpreted as the package <b>name</b> (case usually upcased)</li>
+                <br/>
+                <li>a <b>symbol</b> → its <code>symbol-name</code> is used as the package name</li>
+                <br/>
+                <li>a <b>package object</b> itself</li>
+                <br/>
+            </ul>
+        </li>
+        <li>So all of these are valid and often equivalent:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(find-symbol "FOO" "MY-APP")
+(find-symbol "FOO" :my-app)
+(find-symbol "FOO" (find-package :my-app))
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Why <code>:my-app</code> in <code>DEFPACKAGE</code> and <code>IN-PACKAGE</code>?</b></li>
+    <br/>
+    <ul>
+        <li><code>DEFPACKAGE</code> and <code>IN-PACKAGE</code> are usually written at <b>read-time</b> in source files, and it's idiomatic to use a <b>keyword symbol</b> as the package name:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defpackage :my-app
+  (:use :cl)
+  (:export :start-app))
+
+(in-package :my-app)
+</code></pre>
+    <br/>
+    <ul>
+        <li>Here:
+            <ul>
+                <br/>
+                <li><code>:my-app</code> is a symbol in the <code>KEYWORD</code> package.</li>
+                <br/>
+                <li>Its symbol-name is <code>"MY-APP"</code>.</li>
+                <br/>
+                <li><code>DEFPACKAGE</code> uses that name to create a package whose name is <code>"MY-APP"</code>.</li>
+                <br/>
+            </ul>
+        </li>
+        <li>You could also write:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defpackage "MY-APP"
+  (:use "CL"))
+(in-package "MY-APP")
+</code></pre>
+    <br/>
+    <ul>
+        <li>But the keyword style (<code>:my-app</code>, <code>:cl</code>) is shorter and more common.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Why <code>"MY-APP"</code> in <code>FIND-SYMBOL</code> / <code>INTERN</code> examples?</b></li>
+    <br/>
+    <ul>
+        <li>Because those functions are being shown in their most “raw” form: <code>(find-symbol name package-name-string)</code>.</li>
+        <br/>
+        <li>But remember: they accept <b>any package designator</b>, so all of these are equivalent:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(find-symbol "FOO" "MY-APP")
+(find-symbol "FOO" :my-app)
+(find-symbol "FOO" (find-package "MY-APP"))
+</code></pre>
+    <br/>
+    <ul>
+        <li>The choice is mostly style — many people prefer keywords in code:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(intern "FOO" :my-app)
+(find-symbol "BAR" :my-app)
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Symbol name vs package name</b></li>
+    <br/>
+    <ul>
+        <li>When you write <code>:my-app</code>, you are writing a <b>symbol literal</b> whose <b>name</b> is <code>"MY-APP"</code>.</li>
+        <br/>
+        <li>The package system just uses that name string.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(symbol-name :my-app)
+;; =&gt; "MY-APP"
+
+(find-package :my-app)
+;; =&gt; #&lt;PACKAGE "MY-APP"&gt;
+
+(find-package "MY-APP")
+;; =&gt; #&lt;PACKAGE "MY-APP"&gt;
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Side-by-side comparison</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Form</th>
+                <th>Type</th>
+                <th>What package functions see</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>"MY-APP"</code></td>
+                <td>String</td>
+                <td>Package name string = <code>"MY-APP"</code></td>
+            </tr>
+            <tr>
+                <td><code>:my-app</code></td>
+                <td>Keyword symbol</td>
+                <td>Use <code>(symbol-name :my-app)</code> → <code>"MY-APP"</code></td>
+            </tr>
+            <tr>
+                <td><code>#&lt;PACKAGE "MY-APP"&gt;</code></td>
+                <td>Package object</td>
+                <td>Used directly</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+
+    <li><b>Practical guidelines</b></li>
+    <br/>
+    <ul>
+        <li>In <b>DEFPACKAGE</b> and <b>IN-PACKAGE</b> forms:
+            <ul>
+                <br/>
+                <li>Prefer keywords: <code>:my-app</code>, <code>:cl</code>.</li>
+                <br/>
+            </ul>
+        </li>
+        <li>In functions like <code>FIND-SYMBOL</code>, <code>INTERN</code>, <code>FIND-PACKAGE</code>:
+            <ul>
+                <br/>
+                <li>You can use either strings <b>or</b> symbols. Keywords are convenient:</li>
+                <br/>
+            </ul>
+        </li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(intern "FOO" :my-app)          ; idiomatic
+(intern "FOO" "MY-APP")         ; also valid
+(intern "FOO" (find-package :my-app)) ; most explicit
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><mark>Summary</mark></li>
+    <ul>
+        <br/>
+        <li>Many package-related functions accept a <b>package designator</b>: string, symbol, or package.</li>
+        <br/>
+        <li><code>:my-app</code> is a symbol whose name is <code>"MY-APP"</code> — both refer to the same package name.</li>
+        <br/>
+        <li>That’s why you see:
+            <ul>
+                <br/>
+                <li><code>(defpackage :my-app ...)</code> — symbol designator.</li>
+                <br/>
+                <li><code>(find-symbol "FOO" "MY-APP")</code> — string designator.</li>
+                <br/>
+            </ul>
+        </li>
+        <br/>
+        <li>In your own code, you can safely write <code>(find-symbol "FOO" :my-app)</code> if you prefer the keyword style.</li>
+        <br/>
+    </ul>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
 <h3>Returning Multiple Values</h3>
 <ol>
     <li><b>Introduction</b></li>
@@ -4605,14 +4824,6 @@ CL-USER&gt; (my-app::start-ap)
     <br/>
 </ol>
 <br/>
-<!-- * * * * * * * * * * * * * * -->
-
-
-<hr/>
-
-
-<!-- * * * * * * * * * * * * * * -->
-
 <!-- * * * * * * * * * * * * * * -->
 
 
