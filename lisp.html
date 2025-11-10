@@ -2151,6 +2151,7 @@ a                   ; global A =&gt; 200
 (defparameter *a* (make-array 5))
 
 ;; A 1D array of length 5, all elements start as 0
+;; (defparameter *b* (make-array '(5) :initial-element 0))
 (defparameter *b* (make-array 5 :initial-element 0))
 
 *a*  ; =&gt; #(&lt;UNSPECIFIED&gt; &lt;UNSPECIFIED&gt; &lt;UNSPECIFIED&gt; &lt;UNSPECIFIED&gt; &lt;UNSPECIFIED&gt;)
@@ -2218,12 +2219,69 @@ a                   ; global A =&gt; 200
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>Multi-Dimensional Arrays</h3>
 <ol>
-    <li></li>
+    <li>Common Lisp arrays can have <b>multiple dimensions</b>, like <code>int a[3][4];</code> in C.</li>
     <br/>
     <br/>
-    <li></li>
+
+    <li>Use a <b>list of dimensions</b> with <code>MAKE-ARRAY</code>:</li>
+<pre><code class="language-lisp line-numbers">;; 2 rows, 3 columns, all zeros
+(defparameter *matrix* (make-array '(2 3) :initial-element 0))
+
+*matrix*
+;; =&gt; #2A((0 0 0)
+;;        (0 0 0))
+</code></pre>
+    <br/>
+    <br/>
+
+    <li>Access elements with <code>AREF</code> using one index per dimension.</li>
+<pre><code class="language-lisp line-numbers">(setf (aref *matrix* 0 0) 10)
+(setf (aref *matrix* 0 1) 20)
+(setf (aref *matrix* 1 2) 30)
+
+*matrix*
+;; =&gt; #2A((10 20 0)
+;;        (0  0 30))
+
+(aref *matrix* 1 2)  ; =&gt; 30
+</code></pre>
+    <br/>
+    <br/>
+
+    <li>Literal syntax for multi-dimensional arrays uses <code>#nA</code>:</li>
+<pre><code class="language-lisp line-numbers">#2A((1 2 3)
+    (4 5 6))
+;; 2x3 array
+
+#3A(((1 2) (3 4))
+    ((5 6) (7 8)))
+;; 3D array example
+</code></pre>
+    <br/>
+    <br/>
+
+    <li>Inspecting dimensions:</li>
+<pre><code class="language-lisp line-numbers">(array-dimensions *matrix*) ; =&gt; (2 3)
+(array-dimension *matrix* 0) ; =&gt; 2   ; rows
+(array-dimension *matrix* 1) ; =&gt; 3   ; columns
+</code></pre>
+    <br/>
+    <br/>
+
+    <li>Iterating over a 2D array (like a matrix):</li>
+<pre><code class="language-lisp line-numbers">(defun print-matrix (m)
+  (destructuring-bind (rows cols) (array-dimensions m)
+    (dotimes (i rows)
+      (dotimes (j cols)
+        (format t "~3A " (aref m i j)))
+      (format t "~%"))))
+
+(print-matrix *matrix*)
+;; 10 20  0
+;;  0  0 30
+</code></pre>
     <br/>
 </ol>
 <br/>
