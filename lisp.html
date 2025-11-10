@@ -2081,12 +2081,28 @@ foo        ; =&gt; 42       (variable)
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3>DO</h3>
+<h3>Basics on DO</h3>
 <ol>
-    <li><b>DO</b> is a low-level, general-purpose looping construct in Common Lisp.</li>
+    <li><b>Purpose</b></li>
+    <br/>
+    <ul>
+        <li><code>DO</code> is a powerful, general-purpose looping construct in Common Lisp.</li>
+        <br/>
+        <li>While <code>DOLIST</code> and <code>DOTIMES</code> handle simple loops, <b>DO</b> lets you:</li>
+        <ul>
+            <li>Declare multiple loop variables,</li>
+            <li>Set their initial values,</li>
+            <li>Define custom update steps for each,</li>
+            <li>And specify a flexible termination condition.</li>
+        </ul>
+        <br/>
+        <li>In essence, <code>DO</code> is Lisp's "manual gearbox" for iteration — you control exactly what happens each cycle.</li>
+    </ul>
     <br/>
     <br/>
-    <li>Syntax:</li>
+
+
+    <li><b>Syntax</b></li>
 <pre><code class="language-lisp line-numbers">(do ((&lt;var1&gt; &lt;init1&gt; [&lt;step1&gt;])
      (&lt;var2&gt; &lt;init2&gt; [&lt;step2&gt;])
      ...
@@ -2094,25 +2110,48 @@ foo        ; =&gt; 42       (variable)
     (&lt;end-test&gt; [&lt;result-form&gt;])
   &lt;body&gt;)
 </code></pre>
-<ul>
     <br/>
-    <li><i>var</i>: iter variable.</li>
-    <br/>
-    <li><i>init</i>: initial value (evaluated once at start).</li>
-    <br/>
-    <li><i>step</i>: optional. Controls how to update the variable (evaluated after each iteration).</li>
-    <br/>
-    <li><i>end-test</i>: checked before each iteration.<br/>
-        If true, loop exists and evaluates <i>return-from</i>;<br/>
-        if false, executes the loop body.</li>
-    <br/>
-    <li><i>return-from</i>: optional. If omitted, the loop returns <code>NIL</code>.</li>
-</ul>
+    <ul>
+        <li><b>var</b> — loop variable name.</li>
+        <li><b>init</b> — initial value, evaluated once before the loop begins.</li>
+        <li><b>step</b> — optional; expression used to update the variable after each iteration.
+            If omitted, the variable keeps its last value.</li>
+        <li><b>end-test</b> — condition evaluated at the start of each iteration.
+            If true, the loop terminates and evaluates <b>result-form</b>.</li>
+        <li><b>result-form</b> — optional; determines what the loop returns.
+            If omitted, <code>NIL</code> is returned by default.</li>
+        <li><b>body</b> — one or more forms evaluated on each iteration until the end-test succeeds.</li>
+    </ul>
     <br/>
     <br/>
-    <li>Basic Example:</li>
-<pre><code class="language-lisp line-numbers">(do ((i 0 (+ i 1)))
-    ((&gt;= i 5) 'done)
+
+
+    <li><b>Evaluation order</b></li>
+    <br/>
+    <ol>
+        <li>All <code>init</code> forms are evaluated first, once, from left to right.</li>
+        <li>All variables are bound to their <code>init</code> values.</li>
+        <li>Before each iteration:
+            <ul>
+                <li><code>end-test</code> is evaluated.</li>
+                <li>If true → loop stops, returning <code>result-form</code> (or <code>NIL</code> if omitted).</li>
+                <li>If false → executes the body.</li>
+            </ul>
+        </li>
+        <li>After each iteration:
+            <ul>
+                <li>Each <code>step</code> expression (if any) is evaluated and assigned to its corresponding variable.</li>
+            </ul>
+        </li>
+        <li>Then control goes back to the start, repeating the process.</li>
+    </ol>
+    <br/>
+    <br/>
+
+
+    <li><b>Basic Example</b></li>
+<pre><code class="language-lisp line-numbers">(do ((i 0 (+ i 1)))   ; i starts at 0, increases by 1
+    ((&gt;= i 5) 'done)  ; stop when i &gt;= 5, return 'done
   (format t "i = ~A~%" i))
 
 ;; i = 0
@@ -2120,40 +2159,163 @@ foo        ; =&gt; 42       (variable)
 ;; i = 2
 ;; i = 3
 ;; i = 4
-;; DONE
+;; =&gt; DONE
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>i</code> starts at 0.</li>
+        <li>The loop prints the current value of <code>i</code> each time.</li>
+        <li>After each iteration, <code>(+ i 1)</code> is computed to update <code>i</code>.</li>
+        <li>When <code>(&gt;= i 5)</code> becomes true, the loop ends and returns <code>'done</code>.</li>
+    </ul>
+    <br/>
+    <br/>
 
 
-
-(do ((i 0 (+ i 1))
-     (j 10 (- j 2)))
-    ((&gt; i 3) (list i j))
+    <li><b>Multiple iteration variables</b></li>
+<pre><code class="language-lisp line-numbers">(do ((i 0 (+ i 1))          ; i increments
+     (j 10 (- j 2)))        ; j decrements
+    ((&gt; i 3) (list i j)) ; stop when i &gt; 3, return (i j)
   (format t "i=~A, j=~A~%" i j))
 
 ;; i=0, j=10
 ;; i=1, j=8
 ;; i=2, j=6
 ;; i=3, j=4
-;; (4 2)
+;; =&gt; (4 2)
+</code></pre>
+    <br/>
+    <ul>
+        <li>Both <code>i</code> and <code>j</code> update in parallel each iteration.</li>
+        <li>At the end, both values are available for the <code>result-form</code>.</li>
+    </ul>
+    <br/>
+    <br/>
 
 
+    <li><b>Accumulating results</b></li>
+<pre><code class="language-lisp line-numbers">(do ((i 1 (+ i 1))
+     (sum 0 (+ sum i)))
+    ((&gt; i 5) sum))
+;; =&gt; 15
+</code></pre>
+    <br/>
+    <ul>
+        <li>This loop adds <code>i</code> from 1 to 5 into <code>sum</code>.</li>
+        <li>When <code>i</code> exceeds 5, the loop stops and returns the accumulated sum.</li>
+    </ul>
+    <br/>
+    <br/>
 
-(do ((x 5))         ; x stays 5 forever — infinite loop!
-    ((<= x 0))
+
+    <li><b>Creating infinite loops</b></li>
+<pre><code class="language-lisp line-numbers">(do ((x 5))     ; x is initialized once, never updated
+    ((&lt;= x 0))  ; condition never becomes true
   (print x))
 </code></pre>
     <br/>
+    <ul>
+        <li>Because there's no <code>step</code> form, <code>x</code> never changes.</li>
+        <li>The condition <code>(&lt;= x 0)</code> remains false forever — resulting in an infinite loop.</li>
+        <li>Use <code>(return ...)</code> to manually break out when needed.</li>
+    </ul>
     <br/>
-    <li>Early exit using <b>RETURN</b>:</li>
+    <br/>
+
+
+    <li><b>Early exit using RETURN</b></li>
 <pre><code class="language-lisp line-numbers">(do ((i 0 (+ i 1)))
-    (nil)           ; end test is NIL, infinite loop unless broken
-  (when (= i 3) (return 'early))
+    (nil)             ; end-test = NIL means infinite unless we RETURN
+  (when (= i 3)
+    (return 'early))  ; break manually
   (print i))
 
 ;; 0
 ;; 1
 ;; 2
-;; EARLY
+;; =&gt; EARLY
 </code></pre>
+    <br/>
+    <ul>
+        <li>Since the end-test is <code>NIL</code>, the loop would never end by itself.</li>
+        <li><code>RETURN</code> exits immediately and provides a custom result.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Combining DO with complex updates</b></li>
+<pre><code class="language-lisp line-numbers">(do ((x 1 (* x 2))           ; doubles each time
+     (y 10 (- y 3))          ; decreases by 3
+     (acc '() (cons (* x y) acc))) ; collect products
+    ((or (&gt; x 10) (&lt; y 0)) (nreverse acc))
+  (format t "x=~A, y=~A~%" x y))
+
+;; x=1, y=10
+;; x=2, y=7
+;; x=4, y=4
+;; x=8, y=1
+;; =&gt; (10 14 16 8)
+</code></pre>
+    <br/>
+    <ul>
+        <li>This demonstrates three variables evolving in parallel with different stepping rules.</li>
+        <li>Once either condition triggers, <code>(or (&gt; x 10) (&lt; y 0))</code>, the loop ends and returns the list of products.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>DO vs DOTIMES vs DOLIST</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Feature</th>
+                <th>DOLIST</th>
+                <th>DOTIMES</th>
+                <th>DO</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Purpose</b></td>
+                <td>Iterate over list elements</td>
+                <td>Fixed number of times</td>
+                <td>Fully manual control (multi-variable)</td>
+            </tr>
+            <tr>
+                <td><b>End condition</b></td>
+                <td>End of list</td>
+                <td>Counter reaches limit</td>
+                <td>Custom logical test</td>
+            </tr>
+            <tr>
+                <td><b>Return value</b></td>
+                <td>Optional result-form</td>
+                <td>Optional result-form</td>
+                <td>Optional result-form</td>
+            </tr>
+            <tr>
+                <td><b>Updates</b></td>
+                <td>Automatic (next element)</td>
+                <td>Automatic (i++)</td>
+                <td>Manual via step expressions</td>
+            </tr>
+            <tr>
+                <td><b>Multiple variables</b></td>
+                <td>No</td>
+                <td>No</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td><b>Use case</b></td>
+                <td>Traverse lists</td>
+                <td>Simple numeric loops</td>
+                <td>Parallel iteration, accumulations, complex logic</td>
+            </tr>
+        </tbody>
+    </table>
     <br/>
 </ol>
 <br/>
