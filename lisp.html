@@ -3222,6 +3222,296 @@ a                   ; global A =&gt; 200
 
 
 <!-- * * * * * * * * * * * * * * -->
+<h3>Using Symbols in Common Lisp</h3>
+<ol>
+    <li><b>What is a symbol really?</b></li>
+    <br/>
+    <ul>
+        <li>A symbol is an object with (conceptually) 4 main slots:
+            <ul>
+                <br/>
+                <li><b>NAME</b> — how it prints, e.g. <code>"FOO"</code></li>
+                <br/>
+                <li><b>VALUE</b> — used when the symbol is evaluated as a variable</li>
+                <br/>
+                <li><b>FUNCTION</b> — used when it is called as a function</li>
+                <br/>
+                <li><b>PLIST</b> — a property list attached to this symbol</li>
+                <br/>
+            </ul>
+        </li>
+        <li>Plus: each symbol belongs to a <b>package</b> (a namespace), like <code>COMMON-LISP</code> or <code>CL-USER</code>.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Using symbols as variable names</b></li>
+    <br/>
+    <ul>
+        <li>When you write <code>(setq x 10)</code> or <code>(let ((x 10)) ...)</code>,
+            the symbol <code>X</code> is used as a variable name.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defvar *counter* 0)     ; *COUNTER* is a symbol used as a global variable
+(setq *counter* 10)      ; store 10 in its value cell
+
+(let ((x 42))            ; X is a symbol used as a local variable
+  x)                     ; =&gt; 42
+</code></pre>
+    <br/>
+    <ul>
+        <li>Evaluating a symbol as an expression uses its <b>value cell</b>:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(setq a 100)
+a                       ; =&gt; 100   ; evaluates to the value cell of A
+
+(symbol-value 'a)       ; =&gt; 100   ; same, but using the symbol object explicitly
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Using symbols as function names</b></li>
+    <br/>
+    <ul>
+        <li>When you define a function with <code>DEFUN</code>, the symbol’s <b>function cell</b> is filled.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun square (x)
+  (* x x))
+
+(square 5)                ; =&gt; 25
+(function square)         ; =&gt; #&lt;FUNCTION SQUARE&gt;
+(symbol-function 'square) ; same as FUNCTION but as a function
+</code></pre>
+    <br/>
+    <ul>
+        <li>Evaluating <code>(square 5)</code>:
+            <ul>
+                <br/>
+                <li>First position: <code>square</code> is treated as a function name.</li>
+                <br/>
+                <li>Lisp looks up the <b>function cell</b> of the symbol <code>SQUARE</code>.</li>
+                <br/>
+                <li>Then calls it with argument <code>5</code>.</li>
+            </ul>
+        </li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Symbols as data (quoted)</b></li>
+    <br/>
+    <ul>
+        <li>If you write a symbol <b>quoted</b>, Lisp does not treat it as a variable or function — it is just data.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">'foo       ; symbol FOO
+(quote foo); same
+
+'(a b c)   ; list of three symbols: A, B, C
+</code></pre>
+    <br/>
+    <ul>
+        <li>This is the core of “code as data”: Lisp programs are made of symbols and lists, and you can manipulate them directly.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *expr* '(+ 1 2))
+*expr*           ; =&gt; (+ 1 2)  ; data (list of symbols and numbers)
+(eval *expr*)    ; =&gt; 3        ; treat it as code and evaluate
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Symbols as keys in plists and alists</b></li>
+    <br/>
+    <ul>
+        <li>Symbols are often used as <b>keys</b> because they are easy to read and efficiently comparable.</li>
+    </ul>
+
+    <p><u>Property lists (plists) using keywords</u>:</p>
+<pre><code class="language-lisp line-numbers">(defparameter *person*
+  '(:name "Abby"
+    :age  20
+    :city "Berlin"))
+
+(getf *person* :name) ; =&gt; "Abby"
+(getf *person* :age)  ; =&gt; 20
+</code></pre>
+
+    <p><u>Association lists (alists) using ordinary symbols</u>:</p>
+<pre><code class="language-lisp line-numbers">(defparameter *colors*
+  '((apple  . red)
+    (banana . yellow)
+    (grape  . purple)))
+
+(assoc 'banana *colors*)        ; =&gt; (BANANA . YELLOW)
+(cdr (assoc 'banana *colors*))  ; =&gt; YELLOW
+</code></pre>
+    <br/>
+    <ul>
+        <li>For configuration, keywords (like <code>:name</code>, <code>:age</code>) are very common.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Symbols and keyword parameters</b></li>
+    <br/>
+    <ul>
+        <li>When you define a function with <code>&amp;key</code> parameters, you typically call it with <b>keyword symbols</b>:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun make-user (&amp;key name age admin)
+  (list :name name :age age :admin admin))
+
+(make-user :name "Alice" :age 30 :admin t)
+;; =&gt; (:NAME "Alice" :AGE 30 :ADMIN T)
+</code></pre>
+    <br/>
+    <ul>
+        <li>Here <code>:name</code>, <code>:age</code>, and <code>:admin</code> are symbols from the <b>KEYWORD</b> package that evaluate to themselves.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Symbol properties: symbol-plist</b></li>
+    <br/>
+    <ul>
+        <li>Every symbol has its own <b>property list</b> (plist) attached to it.</li>
+        <li>You can store arbitrary metadata on a symbol.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(setf (symbol-plist 'user-id)
+      '(:type integer :db-column "user_id"))
+
+(symbol-plist 'user-id)
+;; =&gt; (:TYPE INTEGER :DB-COLUMN "user_id")
+
+(getf (symbol-plist 'user-id) :db-column)
+;; =&gt; "user_id"
+</code></pre>
+    <br/>
+    <ul>
+        <li>This is like attaching annotations/attributes to identifiers.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Symbols and packages (namespaces)</b></li>
+    <br/>
+    <ul>
+        <li>Each symbol lives in a <b>package</b>. A package is basically a namespace.</li>
+        <li>When you see <code>cl:car</code>, it means “the symbol named CAR from the COMMON-LISP package”.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(symbol-name 'car)       ; =&gt; "CAR"
+(symbol-package 'car)    ; =&gt; #&lt;PACKAGE "COMMON-LISP"&gt;
+
+;; Intern a new symbol in a custom package:
+(make-package "MY-APP")
+(intern "FOO" "MY-APP")  ; =&gt; MY-APP::FOO
+</code></pre>
+    <br/>
+    <ul>
+        <li>Packages prevent name clashes between libraries (two libraries can both have a function called <code>START</code> in different packages).</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Changing how symbols behave: value vs function</b></li>
+    <br/>
+    <ul>
+        <li>Because symbols have separate <b>value</b> and <b>function</b> cells, you can use the same name for both:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun foo (x) (+ x 1)) ; define function FOO
+(setq foo 10)           ; define variable FOO
+
+foo          ; =&gt; 10          ; value cell
+(foo 5)      ; =&gt; 6           ; function cell
+
+(symbol-value 'foo)     ; =&gt; 10
+(symbol-function 'foo)  ; =&gt; #&lt;FUNCTION FOO&gt;
+</code></pre>
+    <br/>
+    <ul>
+        <li>This sometimes confuses beginners, but it’s powerful — code and data can use the same symbolic names with different roles.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><mark>Summary</mark></li>
+    <ul>
+        <br/>
+        <li>Symbols are <b>names</b> that can be used as variables, function names, macro names, etc.</li>
+        <br/>
+        <li>Quoted symbols (like <code>'foo</code>) are <b>data</b>, not variables.</li>
+        <br/>
+        <li>Symbols are ideal <b>keys</b> for plists, alists, and keyword arguments.</li>
+        <br/>
+        <li>Each symbol has:
+            <ul>
+                <li>a <b>value cell</b> (variables),</li>
+                <li>a <b>function cell</b> (functions/macros),</li>
+                <li>a <b>property list</b> (metadata),</li>
+                <li>a <b>package</b> (namespace).</li>
+            </ul>
+        </li>
+        <br/>
+        <li>Keywords like <code>:name</code> are symbols in the <b>KEYWORD</b> package and evaluate to themselves.</li>
+        <br/>
+        <li>When you think “symbol”, think “a named slot object that can represent code, data, and metadata at the same time”.</li>
+        <br/>
+    </ul>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
 <h3></h3>
 <ol>
     <li></li>
