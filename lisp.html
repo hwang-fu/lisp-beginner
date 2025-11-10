@@ -2133,6 +2133,123 @@ a                   ; global A =&gt; 200
 
 
 <!-- * * * * * * * * * * * * * * -->
+<h3>Arrays (like in C / JS / TS)</h3>
+<ol>
+    <li>In Common Lisp, an <b>array</b> is a fixed-size, indexable collection of elements.<br/>
+        It is similar to:
+        <ul>
+            <li>C: <code>int a[10];</code></li>
+            <li>JS / TS: <code>const arr = [1, 2, 3];</code> (but JS arrays are dynamically sized)</li>
+        </ul>
+        In Lisp, <b>vectors</b> are just <u>one-dimensional arrays</u>. Here we focus on the general array features.
+    </li>
+    <br/>
+    <br/>
+
+    <li><b>Creating 1D Arrays</b> with <code>MAKE-ARRAY</code>:</li>
+<pre><code class="language-lisp line-numbers">;; A 1D array of length 5, elements are unspecified, in SBCL it is treated as 0.
+(defparameter *a* (make-array 5))
+
+;; A 1D array of length 5, all elements start as 0
+(defparameter *b* (make-array 5 :initial-element 0))
+
+*a*  ; =&gt; #(&lt;UNSPECIFIED&gt; &lt;UNSPECIFIED&gt; &lt;UNSPECIFIED&gt; &lt;UNSPECIFIED&gt; &lt;UNSPECIFIED&gt;)
+*b*  ; =&gt; #(0 0 0 0 0)
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Array literal syntax</b> for 1D arrays (vectors):</li>
+<pre><code class="language-lisp line-numbers">#(1 2 3)      ; vector of 3 elements
+#("foo" "bar") ; vector of strings
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Accessing and modifying elements</b> with <code>AREF</code>:</li>
+<pre><code class="language-lisp line-numbers">(defparameter *nums* (make-array 4 :initial-element 0))
+; *NUMS* =&gt; #(0 0 0 0)
+
+(aref *nums* 0)     ; =&gt; 0
+(setf (aref *nums* 0) 42)
+(aref *nums* 0)     ; =&gt; 42
+
+(aref *nums* 3)     ; last valid index (0-based)
+; (aref *nums* 4)   ; ERROR: index out of bounds
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Comparing to C / JS / TS</b> (informally):</li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Language</th>
+                <th>Example</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>C</td>
+                <td><code>int a[4]; a[0] = 42;</code></td>
+                <td>Fixed-size, contiguous memory.</td>
+            </tr>
+            <tr>
+                <td>JS / TS</td>
+                <td><code>const arr = [0, 0, 0, 0]; arr[0] = 42;</code></td>
+                <td>Resizable, dynamic, can push/pop.</td>
+            </tr>
+            <tr>
+                <td>Common Lisp</td>
+                <td><code>(defparameter *a* (make-array 4 :initial-element 0))<br/>(setf (aref *a* 0) 42)</code></td>
+                <td>By default fixed-size. Can also make adjustable arrays.</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
 <h3></h3>
 <ol>
     <li></li>
