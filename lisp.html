@@ -3472,20 +3472,226 @@ foo          ; =&gt; 10          ; value cell
 
 
 <!-- * * * * * * * * * * * * * * -->
-
-<!-- * * * * * * * * * * * * * * -->
-
-
-<hr/>
-
-
-<!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>Association Lists (Alists)</h3>
 <ol>
-    <li></li>
+    <li><b>What is an association list?</b></li>
+    <br/>
+    <ul>
+        <li>An <b>association list</b> (short: <b>alist</b>) is a list of pairs, each made by <code>CONS</code> or written as <code>(key . value)</code>.</li>
+        <br/>
+        <li>It represents a simple mapping of <b>keys → values</b>.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *colors*
+  '((apple  . red)
+    (banana . yellow)
+    (grape  . purple)))
+
+;; Each element is a cons cell:
+;; (car pair) = key, (cdr pair) = value
+</code></pre>
     <br/>
     <br/>
-    <li></li>
+
+    <li><b>Accessing data with ASSOC</b></li>
+    <br/>
+    <ul>
+        <li><code>ASSOC</code> searches the alist for a pair whose key matches the argument using <code>EQL</code> by default.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(assoc 'banana *colors*)
+;; =&gt; (BANANA . YELLOW)
+
+(cdr (assoc 'banana *colors*))
+;; =&gt; YELLOW
+</code></pre>
+    <br/>
+    <ul>
+        <li>If no key matches, <code>ASSOC</code> returns <code>NIL</code>.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(assoc 'pear *colors*) ; =&gt; NIL
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Custom comparison functions</b></li>
+    <br/>
+    <ul>
+        <li>You can specify a test function via <code>:test</code> keyword (e.g. <code>equal</code>, <code>string=</code>, etc.).</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *people*
+  '(("Alice" . 23)
+    ("Bob"   . 30)
+    ("Eve"   . 28)))
+
+(assoc "Bob" *people* :test #'string=)
+;; =&gt; ("Bob" . 30)
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Adding or updating entries</b></li>
+    <br/>
+    <ul>
+        <li>You can prepend a new pair using <code>acons</code> (“add cons”).</li>
+        <li>It constructs <code>(cons (cons key value) alist)</code>.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *grades* nil)
+
+(setf *grades* (acons 'alice 95 *grades*))
+(setf *grades* (acons 'bob   88 *grades*))
+
+*grades* ; =&gt; ((BOB . 88) (ALICE . 95))
+</code></pre>
+    <br/>
+    <ul>
+        <li>Updating a key is easy — just use <code>assoc</code> and <code>rplacd</code> to change its value in place.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(let ((cell (assoc 'bob *grades*)))
+  (when cell
+    (rplacd cell 90)))
+
+*grades* ; =&gt; ((BOB . 90) (ALICE . 95))
+</code></pre>
+    <br/>
+    <ul>
+        <li>Alternatively, you can replace the whole alist functionally:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun set-alist (key value alist)
+  "Return a new alist with KEY updated to VALUE."
+  (let ((pair (assoc key alist)))
+    (if pair
+        (progn (setf (cdr pair) value) alist)
+        (acons key value alist))))
+
+(setf *grades* (set-alist 'alice 100 *grades*))
+*grades* ; =&gt; ((BOB . 90) (ALICE . 100))
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Removing an entry</b></li>
+    <br/>
+    <ul>
+        <li><code>REMOVE</code> or <code>REMOVE-IF</code> can filter entries by key.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(setf *grades*
+      (remove 'bob *grades* :key #'car))
+
+*grades* ; =&gt; ((ALICE . 100))
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Traversing an alist</b></li>
+<pre><code class="language-lisp line-numbers">(dolist (pair *colors*)
+  (format t "~A → ~A~%" (car pair) (cdr pair)))
+;; Prints:
+;; APPLE → RED
+;; BANANA → YELLOW
+;; GRAPE → PURPLE
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Nested alists</b></li>
+    <br/>
+    <ul>
+        <li>Since each value can itself be another alist, you can represent hierarchical data easily.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *library*
+  '((fiction . ((1984        . "Orwell")
+                (brave-new-world . "Huxley")))
+    (science . ((cosmos . "Sagan")
+                (origin . "Darwin")))))
+
+(assoc 'fiction *library*)
+;; =&gt; (FICTION ( (1984 . "Orwell") (BRAVE-NEW-WORLD . "Huxley") ))
+
+(assoc '1984 (cdr (assoc 'fiction *library*)))
+;; =&gt; (1984 . "Orwell")
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Comparison: alist vs plist vs hash-table</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Structure</th>
+                <th>Form</th>
+                <th>Lookup</th>
+                <th>Mutability</th>
+                <th>Best for</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Alist</b></td>
+                <td><code>((key . val) ...)</code></td>
+                <td>Linear (O(n)) via <code>assoc</code></td>
+                <td>Easy with <code>rplacd</code> or <code>acons</code></td>
+                <td>Small, dynamic mappings</td>
+            </tr>
+            <tr>
+                <td><b>Plist</b></td>
+                <td><code>(key1 val1 key2 val2 ...)</code></td>
+                <td>Linear (O(n)) via <code>getf</code></td>
+                <td>Easy but less structured</td>
+                <td>Keyword options, symbol metadata</td>
+            </tr>
+            <tr>
+                <td><b>Hash table</b></td>
+                <td><code>#&lt;HASH-TABLE&gt;</code></td>
+                <td>Constant (O(1)) average</td>
+                <td>Mutable with <code>gethash</code>, <code>setf</code></td>
+                <td>Large datasets, fast lookup</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+    <li><b>Advanced: destructive updates with RPLACA and RPLACD</b></li>
+    <br/>
+    <ul>
+        <li>Every pair in an alist is a cons cell, so you can modify it directly.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *pair* (assoc 'apple *colors*))
+(rplacd *pair* 'green)   ; change value to GREEN
+*colors* ; =&gt; ((APPLE . GREEN) (BANANA . YELLOW) (GRAPE . PURPLE))
+</code></pre>
+    <br/>
+    <ul>
+        <li>These operations mutate structure in place — use with care.</li>
+    </ul>
+    <br/>
+    <br/>
+
+    <li><b>Quick utility examples</b></li>
+<pre><code class="language-lisp line-numbers">(defun alist-keys (alist)
+  (mapcar #'car alist))
+
+(defun alist-values (alist)
+  (mapcar #'cdr alist))
+
+(alist-keys *colors*)   ; =&gt; (APPLE BANANA GRAPE)
+(alist-values *colors*) ; =&gt; (GREEN YELLOW PURPLE)
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><mark>Summary</mark></li>
+    <ul>
+        <br/>
+        <li>An <b>alist</b> is a list of cons pairs representing key–value bindings.</li>
+        <br/>
+        <li>Use <code>assoc</code> to look up, <code>acons</code> to add, and <code>rplacd</code> or <code>remove</code> to update or delete.</li>
+        <br/>
+        <li>Alists are simple, readable, and perfect for small tables or configuration data.</li>
+        <br/>
+        <li>For larger or performance-critical datasets, use <code>hash-table</code> instead.</li>
+        <br/>
+    </ul>
     <br/>
 </ol>
 <br/>
@@ -3496,15 +3702,7 @@ foo          ; =&gt; 10          ; value cell
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
-<ol>
-    <li></li>
-    <br/>
-    <br/>
-    <li></li>
-    <br/>
-</ol>
-<br/>
+
 <!-- * * * * * * * * * * * * * * -->
 
 
@@ -3512,15 +3710,7 @@ foo          ; =&gt; 10          ; value cell
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
-<ol>
-    <li></li>
-    <br/>
-    <br/>
-    <li></li>
-    <br/>
-</ol>
-<br/>
+
 <!-- * * * * * * * * * * * * * * -->
 
 
@@ -3528,15 +3718,7 @@ foo          ; =&gt; 10          ; value cell
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
-<ol>
-    <li></li>
-    <br/>
-    <br/>
-    <li></li>
-    <br/>
-</ol>
-<br/>
+
 <!-- * * * * * * * * * * * * * * -->
 
 
@@ -3544,15 +3726,15 @@ foo          ; =&gt; 10          ; value cell
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
-<ol>
-    <li></li>
-    <br/>
-    <br/>
-    <li></li>
-    <br/>
-</ol>
-<br/>
+
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+
 <!-- * * * * * * * * * * * * * * -->
 
 
