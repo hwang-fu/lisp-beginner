@@ -3915,7 +3915,284 @@ foo          ; =&gt; 10          ; value cell
 
 
 <!-- * * * * * * * * * * * * * * -->
+<h3>Packages, INTERN, and Namespaces</h3>
+<ol>
+    <li><b>What is a package?</b></li>
+    <br/>
+    <ul>
+        <li>A <b>package</b> in Common Lisp is a <u>namespace</u> for symbols.</li>
+        <br/>
+        <li>It controls:
+            <ul>
+                <br/>
+                <li>Which symbols belong to it.</li>
+                <li>Which symbols it can "see" from other packages.</li>
+                <li>How names are resolved when you type <code>foo</code>, <code>car</code>, etc.</li>
+                <br/>
+            </ul>
+        </li>
+        <li>Examples of built-in packages:
+            <ul>
+                <li><code>COMMON-LISP</code> → core language (functions/macros like <code>car</code>, <code>if</code>, <code>let</code>)</li>
+                <li><code>COMMON-LISP-USER</code> → default user package in many REPLs</li>
+                <li><code>KEYWORD</code> → where keyword symbols like <code>:foo</code> live</li>
+            </ul>
+        </li>
+    </ul>
+    <br/>
+<pre><code class="language-lisp line-numbers">(symbol-name 'car)        ; "CAR"
+(symbol-package 'car)     ; #&lt;PACKAGE "COMMON-LISP"&gt;
+(symbol-package :hello)   ; #&lt;PACKAGE "KEYWORD"&gt;
+</code></pre>
+    <br/>
+    <br/>
 
+
+    <li><b>Creating a custom package with MAKE-PACKAGE</b></li>
+    <br/>
+    <ul>
+        <li>You can create a new package at runtime using <code>MAKE-PACKAGE</code>.</li>
+        <li>Basic form:
+            <br/><code>(make-package "NAME" &amp;key :use)</code></li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(make-package "MY-APP" :use '("COMMON-LISP"))
+;; =&gt; #&lt;PACKAGE "MY-APP"&gt;
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>:use '("COMMON-LISP")</code> means:
+            <ul>
+                <br/>
+                <li>Inside <code>MY-APP</code>, you can refer to <code>CAR</code>, <code>IF</code>, etc. without writing <code>CL:CAR</code>, <code>CL:IF</code>.</li>
+                <br/>
+            </ul>
+        </li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>INTERN: creating or finding a symbol inside a package</b></li>
+    <br/>
+    <ul>
+        <li><code>INTERN</code> takes a string and a package and returns a symbol (and a status).</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(intern "FOO" "MY-APP")
+;; first time =&gt; MY-APP::FOO, NIL
+;; later      =&gt; MY-APP::FOO, :INTERNAL
+;; return values typically: symbol, status
+</code></pre>
+    <br/>
+    <ul>
+        <li>If a symbol named <code>"FOO"</code> already exists in that package, it returns the existing symbol.</li>
+        <br/>
+        <li>If not, it creates a new symbol with that name in that package.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(multiple-value-bind (sym status)
+    (intern "FOO" "MY-APP")
+  (list sym status))
+;; =&gt; (MY-APP::FOO :INTERNAL)  ; for a fresh symbol
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Reading and printing package-qualified symbols</b></li>
+    <br/>
+    <ul>
+        <li>When you see <code>MY-APP::FOO</code>, that is:
+            <ul>
+                <br/>
+                <li>Package: <code>MY-APP</code></li>
+                <br/>
+                <li>Symbol name: <code>FOO</code></li>
+                <br/>
+            </ul>
+        </li>
+        <li>There are two separators:
+            <ul>
+                <br/>
+                <li><code>MY-APP:FOO</code> → <b>external</b> symbol</li>
+                <br/>
+                <li><code>MY-APP::FOO</code> → <b>internal</b> symbol</li>
+                <br/>
+            </ul>
+        </li>
+    </ul>
+    <br/>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Syntax</th>
+                <th>Meaning</th>
+                <th>When used</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>pkg:foo</code></td>
+                <td>Refer to <b>exported</b> (public) symbol <code>FOO</code> in package <code>PKG</code>.</td>
+                <td>Normal "public API" usage.</td>
+            </tr>
+            <tr>
+                <td><code>pkg::foo</code></td>
+                <td>Refer to <b>internal</b> symbol <code>FOO</code> in package <code>PKG</code>.</td>
+                <td>Peeking into implementation details.</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+
+    <li><b>IN-PACKAGE: changing the current package</b></li>
+    <br/>
+    <ul>
+        <li><code>IN-PACKAGE</code> changes the package where unqualified symbols are read and interned.</li>
+        <li>Typically used at the top of a source file.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">;; in a .lisp file:
+
+(in-package :my-app)
+
+(defparameter *x* 10)  ; *X* is really MY-APP::*X*
+</code></pre>
+    <br/>
+    <ul>
+        <li>After <code>(in-package :my-app)</code>, writing <code>*x*</code> means <code>MY-APP::*X*</code>.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>DEFPACKAGE: the usual way to define packages</b></li>
+    <br/>
+    <ul>
+        <li>In real projects, you rarely call <code>MAKE-PACKAGE</code> directly in code; you use <code>DEFPACKAGE</code> in a system definition.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defpackage :my-app
+  (:use :cl)
+  (:export :start-app :*version*))
+
+(in-package :my-app)
+
+(defparameter *version* "1.0.0")
+
+(defun start-app ()
+  (format t "Starting app v~A~%" *version*))
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>:use :cl</code> → import <code>COMMON-LISP</code> symbols as defaults.</li>
+        <li><code>:export</code> → make these symbols public (<code>my-app:start-app</code>, <code>my-app:*version*</code>).</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>FIND-SYMBOL: look up symbols by name and package</b></li>
+    <br/>
+    <ul>
+        <li><code>FIND-SYMBOL</code> is like the read-only cousin of <code>INTERN</code>: it only finds, does not create.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(find-symbol "FOO" "MY-APP")
+;; =&gt; MY-APP::FOO, :INTERNAL   or NIL, NIL if not present
+</code></pre>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Function</th>
+                <th>Creates new symbol?</th>
+                <th>Returns</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>intern</code></td>
+                <td>Yes, if not already present</td>
+                <td>Symbol, status (<code>:internal</code> / <code>:external</code> / <code>:inherited</code>)</td>
+            </tr>
+            <tr>
+                <td><code>find-symbol</code></td>
+                <td>No</td>
+                <td>Symbol or <code>NIL</code>, plus same status</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+
+    <li><b>SYMBOL-NAME and SYMBOL-PACKAGE</b></li>
+    <br/>
+    <ul>
+        <li>You can inspect a symbol’s name (string) and home package.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(multiple-value-bind (sym status)
+    (intern "FOO" "MY-APP")
+  (list (symbol-name sym)
+        (symbol-package sym)
+        status))
+;; =&gt; ("FOO" #&lt;PACKAGE "MY-APP"&gt; :INTERNAL)
+</code></pre>
+    <br/>
+    <ul>
+        <li>To convert a symbol back to a string: <code>(symbol-name 'my-app::foo)</code> → <code>"FOO"</code>.</li>
+        <li>To create a symbol from a string: <code>(intern "FOO" "MY-APP")</code>.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Exporting and importing symbols</b></li>
+    <br/>
+    <ul>
+        <li>To make a symbol “public” from a package, call <code>EXPORT</code>.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(in-package :my-app)
+
+(defvar *secret* 42)
+(export '*secret*)
+
+(symbol-package '*secret*) ; =&gt; #&lt;PACKAGE "MY-APP"&gt;
+
+;; From another package / REPL:
+MY-APP:*SECRET*  ; use single colon for exported symbol
+</code></pre>
+    <br/>
+    <ul>
+        <li>To “use” exported symbols from another package without writing the prefix every time, use <code>USE-PACKAGE</code>:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(use-package :my-app)
+*secret* ; now accessible directly (if no name conflict)
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><mark>Summary</mark></li>
+    <ul>
+        <br/>
+        <li>A <b>package</b> is a namespace that owns symbols and controls visibility.</li>
+        <br/>
+        <li><code>MAKE-PACKAGE</code> creates a package; <code>DEFPACKAGE</code> is the usual, declarative way.</li>
+        <br/>
+        <li><code>INTERN</code> creates/finds a symbol in a package from a string.</li>
+        <br/>
+        <li><code>FIND-SYMBOL</code> only finds, never creates.</li>
+        <br/>
+        <li><code>pkg:foo</code> refers to an <b>exported</b> symbol; <code>pkg::foo</code> refers to an internal one.</li>
+        <br/>
+        <li><code>IN-PACKAGE</code> switches the “current” package for reading and interning symbols.</li>
+        <br/>
+        <li><code>EXPORT</code> and <code>USE-PACKAGE</code> control what becomes your public API.</li>
+        <br/>
+    </ul>
+    <br/>
+</ol>
+<br/>
 <!-- * * * * * * * * * * * * * * -->
 
 
