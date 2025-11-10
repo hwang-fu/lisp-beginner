@@ -2589,12 +2589,190 @@ a                   ; global A =&gt; 200
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>Array Element Types</h3>
 <ol>
-    <li></li>
+    <li>Every Common Lisp array has an <b>element type</b> — this tells Lisp what kinds of values may be stored in it.</li>
     <br/>
     <br/>
-    <li></li>
+    <li>If you don’t specify one, the default is <code>T</code> (anything).<br/>
+        That means the array can hold numbers, strings, symbols, lists, other arrays — anything at all.
+    </li>
+    <br/>
+    <br/>
+
+    <li>However, when you restrict the element type, Lisp can often use a more compact and efficient internal representation —
+        similar to how C arrays of <code>int</code> or <code>float</code> are faster and smaller than generic pointer arrays.
+    </li>
+    <br/>
+    <br/>
+
+    <li>Common element types include:</li>
+    <br/>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Element Type</th>
+                <th>Description</th>
+                <th>Example</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>T</code></td>
+                <td>Can hold any Lisp object (default). Slowest and most general.</td>
+                <td><code>(make-array 3 :element-type 't :initial-contents '(a b c))</code></td>
+            </tr>
+            <tr>
+                <td><code>BIT</code></td>
+                <td>Only <code>0</code> or <code>1</code> allowed. Stored as packed bits, like a C <code>bool[]</code>.</td>
+                <td><code>(make-array 8 :element-type 'bit :initial-contents '(1 0 1 0 1 0 0 1))</code></td>
+            </tr>
+            <tr>
+                <td><code>CHARACTER</code></td>
+                <td>Holds characters (like a mutable string).</td>
+                <td><code>(make-array 5 :element-type 'character :initial-element #\?)</code></td>
+            </tr>
+            <tr>
+                <td><code>BASE-CHAR</code></td>
+                <td>Subset of <code>CHARACTER</code> (typically ASCII). Useful for portable strings.</td>
+                <td><code>(make-array 5 :element-type 'base-char)</code></td>
+            </tr>
+            <tr>
+                <td><code>STRING-CHAR</code></td>
+                <td>Usually equivalent to <code>CHARACTER</code>, but emphasizes use as text data.</td>
+                <td><code>(make-array 5 :element-type 'string-char)</code></td>
+            </tr>
+            <tr>
+                <td><code>FIXNUM</code></td>
+                <td>Machine-native integers (fast). Range depends on platform, typically 29–61 bits.</td>
+                <td><code>(make-array 4 :element-type 'fixnum :initial-element 0)</code></td>
+            </tr>
+            <tr>
+                <td><code>INTEGER</code></td>
+                <td>Can hold any integer (including big integers). May be slower than <code>fixnum</code>.</td>
+                <td><code>(make-array 3 :element-type 'integer :initial-element 42)</code></td>
+            </tr>
+            <tr>
+                <td><code>(UNSIGNED-BYTE 8)</code></td>
+                <td>8-bit unsigned integer (0–255). Ideal for bytes or binary file data.</td>
+                <td><code>(make-array 4 :element-type '(unsigned-byte 8) :initial-element 255)</code></td>
+            </tr>
+            <tr>
+                <td><code>(SIGNED-BYTE 8)</code></td>
+                <td>8-bit signed integer (−128–127).</td>
+                <td><code>(make-array 4 :element-type '(signed-byte 8) :initial-element -5)</code></td>
+            </tr>
+            <tr>
+                <td><code>(UNSIGNED-BYTE 16)</code></td>
+                <td>16-bit unsigned integer (0–65535).</td>
+                <td><code>(make-array 2 :element-type '(unsigned-byte 16) :initial-element 1024)</code></td>
+            </tr>
+            <tr>
+                <td><code>FLOAT</code></td>
+                <td>Generic floating-point (may default to single-float).</td>
+                <td><code>(make-array 3 :element-type 'float :initial-element 1.0)</code></td>
+            </tr>
+            <tr>
+                <td><code>SINGLE-FLOAT</code></td>
+                <td>32-bit float (IEEE single precision).</td>
+                <td><code>(make-array 3 :element-type 'single-float :initial-element 0.0)</code></td>
+            </tr>
+            <tr>
+                <td><code>DOUBLE-FLOAT</code></td>
+                <td>64-bit float (IEEE double precision).</td>
+                <td><code>(make-array 2 :element-type 'double-float :initial-element 0.0d0)</code></td>
+            </tr>
+            <tr>
+                <td><code>COMPLEX</code></td>
+                <td>Holds complex numbers (e.g. <code>#C(1.0 2.0)</code>).</td>
+                <td><code>(make-array 2 :element-type 'complex :initial-contents '(#C(1 2) #C(3 4)))</code></td>
+            </tr>
+            <tr>
+                <td><code>STRING</code></td>
+                <td>Shortcut type for one-dimensional array of <code>character</code>.</td>
+                <td><code>(make-array 5 :element-type 'string-char)</code></td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+    <li><b>Testing element type</b> of an array:</li>
+<pre><code class="language-lisp line-numbers">(array-element-type #(1 2 3))
+;; =&gt; T
+
+(array-element-type (make-array 10 :element-type 'bit))
+;; =&gt; BIT
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Typed arrays are specialized</b>:</li>
+    <br/>
+    <ul>
+        <li>Each Lisp implementation may store specialized arrays (e.g., <code>(unsigned-byte 8)</code>) as compact byte vectors.</li>
+        <br/>
+        <li>This enables efficient binary I/O — e.g., reading/writing images, files, or raw buffers.</li>
+        <br/>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *bytes*
+  (make-array 4 :element-type '(unsigned-byte 8)
+                :initial-contents '(72 101 108 108))) ; "Hell"
+
+(write-sequence *bytes* #p"out.bin")
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Multi-dimensional typed arrays</b>:</li>
+<pre><code class="language-lisp line-numbers">(make-array '(3 3)
+             :element-type 'single-float
+             :initial-element 0.0)
+;; =&gt; #2A((0.0 0.0 0.0)
+;;        (0.0 0.0 0.0)
+;;        (0.0 0.0 0.0))
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><mark>Notes and portability tips:</mark></li>
+    <ul>
+        <br/>
+        <li>Not every implementation supports every numeric bit-width (e.g. 16-bit or 32-bit may be missing).</li>
+        <br/>
+        <li>Standard portable types:
+            <ul>
+                <li><code>bit</code></li>
+                <li><code>character</code> / <code>base-char</code></li>
+                <li><code>fixnum</code></li>
+                <li><code>single-float</code>, <code>double-float</code></li>
+                <li><code>t</code></li>
+            </ul>
+        </li>
+        <br/>
+        <li>Arrays of <code>bit</code> can be created using the specialized constructor <code>MAKE-BIT-VECTOR</code> (implementation-specific).</li>
+        <br/>
+        <li>Strings are just arrays of <code>character</code>, so functions like <code>AREF</code> and <code>ADJUST-ARRAY</code> work on them too.</li>
+        <br/>
+    </ul>
+    <br/>
+
+    <li><b>Example summary:</b></li>
+<pre><code class="language-lisp line-numbers">(defparameter *arr-any*  (make-array 3 :element-type 't))
+(defparameter *arr-int*  (make-array 3 :element-type 'fixnum :initial-element 42))
+(defparameter *arr-float* (make-array 3 :element-type 'single-float :initial-element 0.5))
+(defparameter *arr-bit*  (make-array 8 :element-type 'bit :initial-contents '(1 0 1 0 1 1 0 0)))
+(defparameter *arr-char* (make-array 4 :element-type 'character :initial-contents "LISP"))
+
+(list
+  (array-element-type *arr-any*)
+  (array-element-type *arr-int*)
+  (array-element-type *arr-float*)
+  (array-element-type *arr-bit*)
+  (array-element-type *arr-char*))
+;; =&gt; (T FIXNUM SINGLE-FLOAT BIT CHARACTER)
+</code></pre>
     <br/>
 </ol>
 <br/>
