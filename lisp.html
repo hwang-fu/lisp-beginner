@@ -2783,6 +2783,265 @@ a                   ; global A =&gt; 200
 
 
 <!-- * * * * * * * * * * * * * * -->
+<h3>CAR and CDR</h3>
+<ol>
+    <li><b>Historical meaning:</b><br/>
+        The names <code>CAR</code> and <code>CDR</code> come from the 1950s IBM 704 machine architecture.
+        <ul>
+            <br/>
+            <li><code>CAR</code> stood for “Contents of the Address Register”</li>
+            <br/>
+            <li><code>CDR</code> stood for “Contents of the Decrement Register”</li>
+            <br/>
+            <li>They referred to two parts of a memory word that held a pair of pointers.</li>
+            <br/>
+        </ul>
+        Today, they simply mean:
+        <ul>
+            <li><code>CAR</code> → the <b>first element</b> of a list (the head).</li>
+            <li><code>CDR</code> → the <b>rest of the list</b> (the tail).</li>
+        </ul>
+    </li>
+    <br/>
+    <br/>
+
+    <li><b>Basic usage:</b></li>
+<pre><code class="language-lisp line-numbers">(defparameter *nums* '(10 20 30 40))
+
+(car *nums*) ; =&gt; 10
+(cdr *nums*) ; =&gt; (20 30 40)
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>CAR and CDR act on cons cells</b> (pairs):</li>
+    <br/>
+    <ul>
+        <li>A list <code>'(10 20 30)</code> is really shorthand for a chain of <code>CONS</code> pairs:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(cons 10 (cons 20 (cons 30 nil)))
+;; = (10 20 30)
+
+(car '(10 20 30)) ; =&gt; 10
+(cdr '(10 20 30)) ; =&gt; (20 30)
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Understanding the structure:</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Expression</th>
+                <th>Diagram</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>'(10 20 30)</code></td>
+                <td>
+                    <code>[10 | o]→[20 | o]→[30 | NIL]</code>
+                </td>
+                <td>List of three numbers</td>
+            </tr>
+            <tr>
+                <td><code>(car '(10 20 30))</code></td>
+                <td>
+                    Returns first cell’s left part
+                </td>
+                <td><code>10</code></td>
+            </tr>
+            <tr>
+                <td><code>(cdr '(10 20 30))</code></td>
+                <td>
+                    Returns pointer to second cell
+                </td>
+                <td><code>(20 30)</code></td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+    <li><b>Nested CAR/CDR combinations</b></li>
+    <br/>
+    <ul>
+        <li>You can chain <code>CAR</code> and <code>CDR</code> to walk down nested lists.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *lst* '((a b) (c d) (e f)))
+
+(car *lst*)        ; =&gt; (A B)
+(cdr *lst*)        ; =&gt; ((C D) (E F))
+(car (car *lst*))  ; =&gt; A
+(car (cdr *lst*))  ; =&gt; (C D)
+(car (cdr (car *lst*))) ; =&gt; B
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Shorthand forms:</b> Lisp has built-in combinations up to four levels deep:</li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Form</th>
+                <th>Equivalent to</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>(caar x)</code></td>
+                <td><code>(car (car x))</code></td>
+                <td>First of the first</td>
+            </tr>
+            <tr>
+                <td><code>(cadr x)</code></td>
+                <td><code>(car (cdr x))</code></td>
+                <td>Second element</td>
+            </tr>
+            <tr>
+                <td><code>(caddr x)</code></td>
+                <td><code>(car (cdr (cdr x)))</code></td>
+                <td>Third element</td>
+            </tr>
+            <tr>
+                <td><code>(cddr x)</code></td>
+                <td><code>(cdr (cdr x))</code></td>
+                <td>All but the first two elements</td>
+            </tr>
+        </tbody>
+    </table>
+<pre><code class="language-lisp line-numbers">(defparameter *nums* '(1 2 3 4))
+(cadr *nums*)  ; =&gt; 2
+(caddr *nums*) ; =&gt; 3
+(cddr *nums*)  ; =&gt; (3 4)
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Modern synonyms (more readable):</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Old</th>
+                <th>Modern equivalent</th>
+                <th>Meaning</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>car</code></td>
+                <td><code>first</code></td>
+                <td>Head of list</td>
+            </tr>
+            <tr>
+                <td><code>cdr</code></td>
+                <td><code>rest</code></td>
+                <td>Tail of list</td>
+            </tr>
+            <tr>
+                <td><code>(cadr x)</code></td>
+                <td><code>(second x)</code></td>
+                <td>Second element</td>
+            </tr>
+            <tr>
+                <td><code>(caddr x)</code></td>
+                <td><code>(third x)</code></td>
+                <td>Third element</td>
+            </tr>
+            <tr>
+                <td><code>(cdddr x)</code></td>
+                <td><code>(nthcdr 3 x)</code></td>
+                <td>Drop first 3 elements</td>
+            </tr>
+        </tbody>
+    </table>
+<pre><code class="language-lisp line-numbers">(first '(a b c d)) ; =&gt; A
+(rest  '(a b c d)) ; =&gt; (B C D)
+(third '(a b c d)) ; =&gt; C
+(nth 2 '(a b c d)) ; =&gt; C
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><mark>Summary</mark>:</li>
+    <ul>
+        <br/>
+        <li><code>CAR</code> → first element of a cons/list.</li>
+        <br/>
+        <li><code>CDR</code> → rest of the list (tail).</li>
+        <br/>
+        <li>They work on <code>CONS</code> pairs: <code>(cons a b)</code> → <code>(car x)=a</code>, <code>(cdr x)=b</code>.</li>
+        <br/>
+        <li>Combined forms: <code>CADR</code>, <code>CADDR</code>, etc. for convenience.</li>
+        <br/>
+        <li>Modern names: <code>FIRST</code>, <code>REST</code>, <code>SECOND</code>, <code>THIRD</code>.</li>
+        <br/>
+        <li>CAR/CDR are to Lisp what pointer dereferencing is to C — they’re the fundamental way of walking linked structures.</li>
+        <br/>
+    </ul>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3></h3>
+<ol>
+    <li></li>
+    <br/>
+    <br/>
+    <li></li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
 <h3></h3>
 <ol>
     <li></li>
