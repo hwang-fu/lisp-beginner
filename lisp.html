@@ -4198,6 +4198,203 @@ MY-APP:*SECRET*  ; use single colon for exported symbol
 
 
 <!-- * * * * * * * * * * * * * * -->
+<h3><code>my-app:start-app</code> VS <code>my-app::start-app</code></h3>
+<ol>
+    <li><b>Recap: exported vs internal symbols</b></li>
+    <br/>
+    <ul>
+        <li>When you define a package with <code>DEFPACKAGE</code>, you can choose which symbols are <b>exported</b> (public) and which remain <b>internal</b> (private).</li>
+        <br/>
+        <li>Example:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defpackage :my-app
+  (:use :cl)
+  (:export :start-app :*version*))
+
+(in-package :my-app)
+
+(defparameter *version* "1.0.0")
+
+(defun start-app ()
+  (format t "Starting app v~A~%" *version*))
+</code></pre>
+    <br/>
+    <ul>
+        <li>Here, <code>start-app</code> and <code>*version*</code> are <b>exported</b> from <code>MY-APP</code>.</li>
+        <br/>
+        <li>Other symbols you define but don’t list in <code>:export</code> stay internal.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Single colon: <code>pkg:symbol</code> → exported only</b></li>
+    <br/>
+    <ul>
+        <li><code>pkg:symbol</code> means: “Use the <b>exported</b> symbol named <code>SYMBOL</code> from package <code>PKG</code>.”</li>
+        <br/>
+        <li>If that symbol isn’t exported, you get a <b>reader error</b> when loading/compiling code.</li>
+    </ul>
+
+    <p>Example (assuming <code>start-app</code> is <u>not</u> exported):</p>
+<pre><code class="language-lisp line-numbers">;; Suppose:
+(defpackage :my-app
+  (:use :cl))         ; no :export here
+
+(in-package :my-app)
+
+(defun start-app ()
+  (format t "Starting app!~%"))
+
+
+;; From CL-USER:
+CL-USER&gt; my-app:start-app
+;; =&gt; Reader error:
+;;    The symbol "START-APP" is not exported from package "MY-APP".
+</code></pre>
+    <br/>
+    <ul>
+        <li>So: <b>one colon</b> works only for <b>exported</b> (public) API symbols.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Double colon: <code>pkg::symbol</code> → internal or external</b></li>
+    <br/>
+    <ul>
+        <li><code>pkg::symbol</code> means: “Give me the symbol named <code>SYMBOL</code> in package <code>PKG</code>, even if it’s internal.”</li>
+        <br/>
+        <li>It can see both:
+            <ul>
+                <li>exported symbols</li>
+                <li>internal (non-exported) symbols</li>
+            </ul>
+        </li>
+    </ul>
+
+    <p>Continuing the same example (no <code>:export</code>):</p>
+<pre><code class="language-lisp line-numbers">CL-USER&gt; (my-app::start-app)
+Starting app!
+NIL
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>my-app::start-app</code> works even though <code>start-app</code> was not exported.</li>
+        <br/>
+        <li>This is how you can “peek inside” another package’s internal implementation.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>What if the symbol doesn’t exist?</b></li>
+    <br/>
+    <ul>
+        <li>If you typo the name with <code>pkg::typo-name</code>, the reader will <b>intern a new symbol</b> in that package:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">CL-USER&gt; 'my-app::start-ap
+;; =&gt; MY-APP::START-AP   ; a new symbol was created
+
+CL-USER&gt; (my-app::start-ap)
+;; =&gt; Undefined-function error at runtime
+</code></pre>
+    <br/>
+    <ul>
+        <li>So <code>::</code> will not throw a reader error — it either finds the symbol or creates a new internal one.</li>
+        <br/>
+        <li>If it’s new and you try to call it as a function, you’ll get a normal <b>undefined function</b> runtime error.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Export vs internal access: behavior table</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Symbol status in <code>MY-APP</code></th>
+                <th>Form</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Exported</td>
+                <td><code>my-app:start-app</code></td>
+                <td>✅ Works</td>
+            </tr>
+            <tr>
+                <td>Exported</td>
+                <td><code>my-app::start-app</code></td>
+                <td>✅ Also works (can still use internal-access syntax)</td>
+            </tr>
+            <tr>
+                <td>Internal (not exported)</td>
+                <td><code>my-app:start-app</code></td>
+                <td>❌ Reader error: not exported</td>
+            </tr>
+            <tr>
+                <td>Internal (not exported)</td>
+                <td><code>my-app::start-app</code></td>
+                <td>✅ Works (internal symbol access)</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+
+    <li><b>Best practice / style</b></li>
+    <br/>
+    <ul>
+        <li>Use <b>one colon</b> (<code>pkg:foo</code>) when you are calling the public API of another package.</li>
+        <br/>
+        <li>Use <b>two colons</b> (<code>pkg::foo</code>) only when:
+            <ul>
+                <br/>
+                <li>You’re debugging, testing, or exploring.</li>
+                <br/>
+                <li>You intentionally want to reach into private internals (with the risk that they may change).</li>
+                <br/>
+            </ul>
+        </li>
+        <br/>
+        <li>Library authors should clearly <code>:export</code> only the symbols they want others to rely on.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><mark>Summary</mark></li>
+    <ul>
+        <br/>
+        <li>If you don’t <code>:export</code> <code>start-app</code> from <code>MY-APP</code>:
+            <ul>
+                <br/>
+                <li><code>my-app:start-app</code> → <b>error</b> (not exported).</li>
+                <br/>
+                <li><code>my-app::start-app</code> → <b>works</b>, because it can access internal symbols.</li>
+                <br/>
+            </ul>
+        </li>
+        <br/>
+        <li>Single colon = “public, exported symbol only”.</li>
+        <br/>
+        <li>Double colon = “any symbol (internal or external) with that name in the package.”</li>
+        <br/>
+    </ul>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
 <h3>Returning Multiple Values</h3>
 <ol>
     <li><b>Introduction</b></li>
@@ -4405,6 +4602,38 @@ MY-APP:*SECRET*  ; use single colon for exported symbol
     <br/>
 </ol>
 <br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+
 <!-- * * * * * * * * * * * * * * -->
 
 
