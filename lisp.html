@@ -295,141 +295,6 @@ abc123
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3>Macro</h3>
-<ol>
-    <li>Technically, a macro is a function that takes an s-expression as arguments and returns a Lisp form, which is then evaluated.</li>
-    <br/>
-    <br/>
-    <li>Syntax for defining a named macro:</li>
-<pre><code class="language-lisp line-numbers">(defmacro &lt;macro-name&gt; (&lt;param-list&gt;)
-  "optional document string."
-  &lt;body&gt;)
-</code></pre>
-    <br/>
-    <br/>
-    <li>Backquote Examples:</li>
-    <br/>
-<table>
-    <thead>
-        <tr>
-            <th>Backquote Syntax</th>
-            <th>Equivalent List-Building Code</th>
-            <th>Result</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><code>`(a (+ 1 2) c)</code></td>
-            <td><code>(list 'a '(+ 1 2) 'c)</code></td>
-            <td><code>(a (+ 1 2) c)</code></td>
-        </tr>
-        <tr>
-            <td><code>`(a ,(+ 1 2) c)</code></td>
-            <td><code>(list 'a (+ 1 2) 'c)</code></td>
-            <td><code>(a 3 c)</code></td>
-        </tr>
-        <tr>
-            <td><code>`(a (list 1 2) c)</code></td>
-            <td><code>(list 'a '(list 1 2) 'c)</code></td>
-            <td><code>(a (list 1 2) c)</code></td>
-        </tr>
-        <tr>
-            <td><code>`(a ,(list 1 2) c)</code></td>
-            <td><code>(list 'a (list 1 2) 'c)</code></td>
-            <td><code>(a (1 2) c)</code></td>
-        </tr>
-        <tr>
-            <td><code>`(a ,@(list 1 2) c)</code></td>
-            <td><code>(append (list 'a) (list 1 2) (list 'c))</code></td>
-            <td><code>(a 1 2 c)</code></td>
-        </tr>
-    </tbody>
-</table>
-    <br/>
-    <br/>
-    <br/>
-    <li>Syntax: <code>defmacro &lt;macro-name&gt; (&lt;lambda-list&gt; [&lt;doc-string&gt;] [&lt;decl&gt;]* &lt;form&gt;*)</code></li>
-    <ul>
-        <br/>
-        <li><i>defmacro</i>: The defining keyword.</li>
-        <br/>
-        <li><i>macro-name</i>: The name of the macro (a symbol).</li>
-        <br/>
-        <li><i>lambda-list</i>:The parameter list, receives un-evaluates forms. Also supports &amp;optional, &amp;key like in the <b>DEFUN</b>.<br/>
-            But in <b>DEFMACRO</b> &amp;rest is usually not used, instead &amp;body is represented as the body form.</li>
-        <br/>
-        <li><i>doc-string</i>: Optional. String shown by <b>DOCUMENTATION</b>.</li>
-        <br/>
-        <li><i>decl</i>: Compiler decalarations.</li>
-        <br/>
-        <li><i>form</i>: The body. Must return code (a Lisp form), not run the code.</li>
-    </ul>
-    <br/>
-    <br/>
-    <li>Example:</li>
-<pre><code class="language-lisp line-numbers">(defmacro my-when (test &amp;body body)
-  "If TEST is true, execute BODY like (progn ...)."
-  `(if ,test
-       (progn ,@body)))
-
-(my-when (&gt; x 10)
-  (print "positive")
-  (incf x))
-
-;; Macro expansion (what Lisp actually sees):
-(if (&gt; x 0)
-  (progn (print "positive") (incf x)))
-</code></pre>
-    <br/>
-    <br/>
-    <li>More advanced example(s):</li>
-<pre><code class="language-lisp line-numbers">(defmacro echo-times (&amp;body body &amp;key (times 1) (prefix "=&gt; "))
-  ;; Remove trailing keyword/value pairs from BODY so we only keep real forms.
-  (let* ((rev (reverse body))
-         (pure-rev
-           (loop with lst = rev
-                 ;; While the reversed list starts with a keyword/value pair,
-                 ;; drop those two cells.
-                 while (and (consp lst) (consp (cdr lst)) (keywordp (car lst)))
-                 do (setf lst (cddr lst))
-                 finally (return lst)))
-         (pure-body (reverse pure-rev)))
-    `(dotimes (i ,times)
-       (format t "~A" ,prefix)
-       (progn ,@pure-body))))
-
-(echo-times
-  (format t "Hello~%")
-  (format t "World~%")
-  :times 2
-  :prefix "[*] ")
-
-
-;; --------------------------
-
-
-(defmacro with-prefix ((&amp;key (prefix "=&gt; ") (times 1)) &amp;body body)
-  `(dotimes (i ,times)
-     (format t "~A" ,prefix)
-     (progn ,@body)))
-
-(with-prefix (:prefix "[*] " :times 2)
-  (format t "Hello~%")
-  (format t "World~%"))
-</code></pre>
-    <br/>
-    <br/>
-    <li>The <i>declaration</i> part of <b>DEFMACRO</b>: Will be covered in the future...</li>
-    <br/>
-</ol>
-<br/>
-<!-- * * * * * * * * * * * * * * -->
-
-
-<hr/>
-
-
-<!-- * * * * * * * * * * * * * * -->
 <h3>Variables</h3>
 <ol>
     <li>Global variables are generally declared using the <code>DEFVAR</code> construct.</li>
@@ -1655,6 +1520,358 @@ foo        ; =&gt; 42       (variable)
     <br/>
     <li><code>'(3 4 5)</code> is a quoted list — a literal value.<br/><br/>
         The single quote ( <code>'</code> ) is shorthand for </code>(quote ...)</code>.</li>
+    <br/>
+</ol>
+<br/>
+<!-- * * * * * * * * * * * * * * -->
+
+
+<hr/>
+
+
+<!-- * * * * * * * * * * * * * * -->
+<h3>Macro</h3>
+<ol>
+    <li><b>What is a macro?</b></li>
+    <br/>
+    <ul>
+        <li>In Common Lisp, a <b>macro</b> is code that <u>writes other code</u>.</li>
+        <br/>
+        <li>Unlike a normal function (which runs at <b>runtime</b>), a macro runs at <b>compile-time / macro-expansion-time</b>.</li>
+        <br/>
+        <li>It receives its arguments as <b>unevaluated Lisp forms</b> (s-expressions) and returns a new Lisp form, which is then compiled / evaluated in place of the original macro call.</li>
+        <br/>
+        <li>So the lifecycle looks like this:</li>
+        <ul>
+            <li>You write: <code>(my-macro arg1 arg2 ...)</code></li>
+            <li>Lisp calls the macro <b>as a transformer</b> and gets back some new code: e.g. <code>(if ... (progn ...))</code></li>
+            <li>That resulting code is what actually gets run at runtime.</li>
+        </ul>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Basic DEFMACRO syntax</b></li>
+    <br/>
+<pre><code class="language-lisp line-numbers">(defmacro &lt;macro-name&gt; (&lt;lambda-list&gt;)
+  "Optional documentation string."
+  &lt;body-forms...&gt;)
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>defmacro</code> — the defining operator for macros.</li>
+        <br/>
+        <li><code>macro-name</code> — symbol naming the macro (how you'll call it).</li>
+        <br/>
+        <li><code>lambda-list</code> — parameter list, but it receives <b>unevaluated forms</b>.
+            It supports almost everything <code>defun</code> does: <code>&amp;optional</code>, <code>&amp;rest</code>, <code>&amp;key</code>, and also <code>&amp;body</code>.</li>
+        <br/>
+        <li><code>doc-string</code> — optional documentation string, visible via <code>(documentation 'macro-name 'function)</code>.</li>
+        <br/>
+        <li><code>body-forms</code> — these run at macro-expansion-time and must return <b>code</b> (a Lisp form), not the final result of the computation.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Macro parameters and &amp;body</b></li>
+    <br/>
+    <ul>
+        <li>In macros, you often want to capture "the rest of the forms" as a list, similar to <code>&amp;rest</code>.</li>
+        <br/>
+        <li><code>&amp;body</code> is like <code>&amp;rest</code> but is used <b>by convention</b> for "body-forms" and some tools / editors treat it specially.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defmacro my-when (test &amp;body body)
+  "If TEST is true, execute BODY like (progn ...)."
+  ...)
+</code></pre>
+    <br/>
+    <ul>
+        <li>Here, <code>body</code> is a list of the forms the user wrote inside the macro call.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Backquote, comma, and comma-at</b></li>
+    <br/>
+    <ul>
+        <li>When writing macros, you often need to <b>build lists that represent code</b>.</li>
+        <br/>
+        <li>The backquote ( <code>`</code> ) notation is a handy way to write "templates" for lists with parts that are computed.</li>
+        <br/>
+        <li>Inside a backquoted form:</li>
+        <ul>
+            <li><code>,expr</code> — "unquote": evaluate <code>expr</code> and insert its value.</li>
+            <li><code>,@expr</code> — "unquote-splicing": evaluate <code>expr</code> and splice its elements into the surrounding list.</li>
+        </ul>
+    </ul>
+    <br/>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Backquote Syntax</th>
+                <th>Equivalent List-Building Code</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>`(a (+ 1 2) c)</code></td>
+                <td><code>(list 'a '(+ 1 2) 'c)</code></td>
+                <td><code>(a (+ 1 2) c)</code></td>
+            </tr>
+            <tr>
+                <td><code>`(a ,(+ 1 2) c)</code></td>
+                <td><code>(list 'a (+ 1 2) 'c)</code></td>
+                <td><code>(a 3 c)</code></td>
+            </tr>
+            <tr>
+                <td><code>`(a (list 1 2) c)</code></td>
+                <td><code>(list 'a '(list 1 2) 'c)</code></td>
+                <td><code>(a (list 1 2) c)</code></td>
+            </tr>
+            <tr>
+                <td><code>`(a ,(list 1 2) c)</code></td>
+                <td><code>(list 'a (list 1 2) 'c)</code></td>
+                <td><code>(a (1 2) c)</code></td>
+            </tr>
+            <tr>
+                <td><code>`(a ,@(list 1 2) c)</code></td>
+                <td><code>(append (list 'a) (list 1 2) (list 'c))</code></td>
+                <td><code>(a 1 2 c)</code></td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+
+    <li><b>Full DEFMACRO form</b></li>
+    <br/>
+    <p>General syntax (simplified):</p>
+<pre><code class="language-lisp line-numbers">(defmacro macro-name (lambda-list
+                       &amp;optional doc-string
+                       &amp;rest body)
+  "doc-string"
+  ;; declarations (optional)
+  ;; body must compute and return code
+  ...)
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>lambda-list</code> — like in <code>defun</code>: supports <code>&amp;optional</code>, <code>&amp;key</code>, <code>&amp;rest</code>, <code>&amp;body</code>, and even destructuring (covered elsewhere in your notes).</li>
+        <br/>
+        <li><code>doc-string</code> — optional, shown by <code>DOCUMENTATION</code>.</li>
+        <br/>
+        <li><code>declarations</code> — compiler hints (e.g. <code>(declare (special x))</code>); you can add them between the doc-string and the body.</li>
+        <br/>
+        <li><code>body</code> — produces the expansion form. It does <b>not</b> directly perform the user's work; it <b>returns code</b> that will be run later.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>A simple macro: MY-WHEN</b></li>
+    <br/>
+<pre><code class="language-lisp line-numbers">(defmacro my-when (test &amp;body body)
+  "If TEST is true, execute BODY like (progn ...)."
+  `(if ,test
+       (progn ,@body)))
+
+(my-when (&gt; x 10)
+  (print "positive")
+  (incf x))
+</code></pre>
+    <br/>
+    <ul>
+        <li>What does Lisp actually see after macro-expansion?</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(if (&gt; x 10)
+    (progn
+      (print "positive")
+      (incf x)))
+</code></pre>
+    <br/>
+    <ul>
+        <li>The macro call is replaced by this <code>IF+PROGN</code> form before runtime.</li>
+        <li>At runtime, only the expansion runs; the macro itself is not involved anymore.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Inspecting macro expansion</b></li>
+    <br/>
+    <ul>
+        <li>Common Lisp provides <code>MACROEXPAND-1</code> and <code>MACROEXPAND</code> to see what your macro turns into.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(macroexpand-1 '(my-when (&gt; x 10)
+                  (print "positive")
+                  (incf x)))
+;; =&gt; (IF (&gt; X 10)
+;;        (PROGN (PRINT "positive") (INCF X)))
+;;    T
+</code></pre>
+    <br/>
+    <ul>
+        <li>This is extremely useful when you're debugging macros: always ask "What code am I actually generating?"</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>More advanced examples</b></li>
+    <br/>
+    <p>Example 1: macro with keyword options trailing after body.</p>
+<pre><code class="language-lisp line-numbers">(defmacro echo-times (&amp;body body &amp;key (times 1) (prefix "=&gt; "))
+  ;; Remove trailing keyword/value pairs from BODY so we only keep real forms.
+  (let* ((rev (reverse body))
+         (pure-rev
+           (loop with lst = rev
+                 ;; While the reversed list starts with a keyword/value pair,
+                 ;; drop those two cells.
+                 while (and (consp lst) (consp (cdr lst)) (keywordp (car lst)))
+                 do (setf lst (cddr lst))
+                 finally (return lst)))
+         (pure-body (reverse pure-rev)))
+    `(dotimes (i ,times)
+       (format t "~A" ,prefix)
+       (progn ,@pure-body))))
+
+(echo-times
+  (format t "Hello~%")
+  (format t "World~%")
+  :times 2
+  :prefix "[*] ")
+</code></pre>
+    <br/>
+    <ul>
+        <li>Here the macro:
+            <ul>
+                <li>Treats <code>body</code> as a mixture of real forms and trailing keyword-value pairs,</li>
+                <li>Strips the keyword options off the end,</li>
+                <li>Then generates a loop (<code>dotimes</code>) that runs the body multiple times with a given prefix.</li>
+            </ul>
+        </li>
+    </ul>
+    <br/>
+    <p>Example 2: macro with a keyword argument list grouped in one parameter.</p>
+<pre><code class="language-lisp line-numbers">(defmacro with-prefix ((&amp;key (prefix "=&gt; ") (times 1)) &amp;body body)
+  `(dotimes (i ,times)
+     (format t "~A" ,prefix)
+     (progn ,@body)))
+
+(with-prefix (:prefix "[*] " :times 2)
+  (format t "Hello~%")
+  (format t "World~%"))
+</code></pre>
+    <br/>
+    <ul>
+        <li>This shows how macros can pattern-match argument structure and give a nicer surface syntax, like a mini DSL.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Macro vs function</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Aspect</th>
+                <th>Function</th>
+                <th>Macro</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Arguments</td>
+                <td>Evaluated before call</td>
+                <td>Passed as raw code (unevaluated forms)</td>
+            </tr>
+            <tr>
+                <td>Runs at</td>
+                <td>Runtime</td>
+                <td>Compile-time / macro-expansion-time</td>
+            </tr>
+            <tr>
+                <td>Returns</td>
+                <td>Final value</td>
+                <td>A form (code) that will later be evaluated</td>
+            </tr>
+            <tr>
+                <td>Use when</td>
+                <td>You just need computation</td>
+                <td>You need to change syntax or control evaluation</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <ul>
+        <li><mark>Rule of thumb</mark>: use a <b>function</b> unless you specifically need a macro (e.g., to control evaluation, introduce new syntax, or avoid repeated evaluation of arguments).</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Common pitfalls: variable capture and GENSYM</b></li>
+    <br/>
+    <ul>
+        <li>When a macro introduces new variable names, there is a risk of <b>clashing</b> with variables in the caller's code.</li>
+        <br/>
+        <li>To avoid this, macros often use <code>gensym</code> to create unique, uninterned symbols.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defmacro with-temp ((var value) &amp;body body)
+  (let ((tmp (gensym "TMP-")))
+    `(let ((,tmp ,value))
+       (let ((,var ,tmp))
+         ,@body))))
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>gensym</code> ensures that the internal variable name won't accidentally shadow or be shadowed by user variables.</li>
+        <li>This topic is often referred to as <b>macro hygiene</b>.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li>The <i>declaration</i> part of <b>DEFMACRO</b></li>
+    <br/>
+    <ul>
+        <li>Between the doc-string and the body, you can place declarations:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defmacro example (x)
+  "Example macro with declaration."
+  (declare (ignorable x)) ; tell the compiler it's okay if X is unused
+  `(list ,x))
+</code></pre>
+    <br/>
+    <ul>
+        <li>Declarations are hints to the compiler (optimization, type information, etc.).</li>
+        <li>More advanced declaration usage in macros can be explored later.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><mark>Summary</mark></li>
+    <ul>
+        <li>A <b>macro</b> is a code transformer: it takes forms as input and returns a new form.</li>
+        <br/>
+        <li>Macros run at expansion time; the expanded code runs at runtime.</li>
+        <br/>
+        <li>Backquote (<code>`</code>), comma (<code>,</code>), and comma-at (<code>,@</code>) are essential tools for building expansion forms.</li>
+        <br/>
+        <li>Use <code>MACROEXPAND-1</code> to inspect what your macro generates.</li>
+        <br/>
+        <li>Prefer functions unless you really need macro power: control of evaluation, new syntactic constructs, or embedding DSL-like patterns.</li>
+        <br/>
+        <li>Be careful with variable capture; use <code>gensym</code> or appropriate patterns to avoid name clashes.</li>
+    </ul>
     <br/>
 </ol>
 <br/>
