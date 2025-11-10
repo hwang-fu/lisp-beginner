@@ -957,128 +957,277 @@ B
 <!-- * * * * * * * * * * * * * * -->
 <h3>Basics about Functions</h3>
 <ol>
-    <li>Normally functions are defined using the <b>DEFUN</b> macro.<br/>
-        The basic skeleton of a <b>DEFUN</b> looks like this:</li>
-<pre><code class="language-lisp line-numbers">(defun &lt;function-name&gt; (&lt;param-list&gt;)
+    <li><b>Defining functions with DEFUN</b></li>
+    <br/>
+    <ul>
+        <li>Functions in Common Lisp are most commonly defined with the <b>DEFUN</b> macro.</li>
+        <br/>
+        <li>Basic form:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun &lt;function-name&gt; (&lt;parameter-list&gt;)
   "Optional documentation string."
   &lt;function-body&gt;)
 </code></pre>
     <br/>
-    <br/>
-    <li><i>frob-widget</i> is better Lisp style than either <i>frob_widget</i> or <i>frobWidget</i>.</li>
-    <br/>
-    <br/>
-    <li>If the function takes no arguments, the list is empty, written as <code>()</code>.<br/>
-        Different flavors of parameters handle <u>required</u>, <u>optional</u>, <u>rest</u>, and <u>keyword</u> arguments.
-    </li>
-    <br/>
-    <br/>
-    <li>If a string literal follows the parameter list,
-        it's a documentation string that should describe the purpose of the function.<br/>
-        When the function is defined, the documentation string will be associated with the name of the function and can later be obtained using the <b>DOCUMENTATION</b> function.</li>
-    <br/>
-    <br/>
-    <li>Example of a function:</li>
+    <ul>
+        <li>The function body can contain any number of Lisp expressions,
+            the value of the <b>last</b> expression becomes the return value.</li>
+        <br/>
+        <li>Function names are usually written with hyphens (<code>frob-widget</code>) rather than underscores (<code>frob_widget</code>) or camel case (<code>frobWidget</code>).</li>
+        <br/>
+    </ul>
 <pre><code class="language-lisp line-numbers">(defun verbose-sum (x y)
-  "Sum any two numbers after printing a message."
-  (format t "Summing ~d and ~d.~%" x y)
+  "Sum two numbers after printing a message."
+  (format t "Summing ~D and ~D.~%" x y)
   (+ x y))
 </code></pre>
     <br/>
+    <ul>
+        <li>Call it normally:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(verbose-sum 2 3)
+;; Prints: Summing 2 and 3.
+;; Returns: 5
+</code></pre>
     <br/>
-    <li>
-        When a parameter list is a simple list of variable names, as in <code>verbose-sum</code>, the parameters are called <u>required parameters</u>.<br/>
-        If a function is called with too few or too many arguments, Lisp will signal an error.</li>
+    <br/>
+
+
+    <li><b>Documentation strings</b></li>
+    <br/>
+    <ul>
+        <li>If a string literal follows the parameter list, it's stored as the <b>function's docstring</b>.</li>
+        <li>You can later retrieve it using <code>(documentation '&lt;function-name&gt; 'function)</code>.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(documentation 'verbose-sum 'function)
+;; =&gt; "Sum two numbers after printing a message."
+</code></pre>
     <br/>
     <br/>
-    <li>
-        To define a function with <u>optional parameters</u>,<br/>
-        after the names of any <u>required parameters</u>,
-        place the symbol <b>&amp;optional</b> followed by the name(s) of the <u>optional parameters</u>.
-    </li>
+
+
+    <li><b>Required parameters</b></li>
+    <br/>
+    <ul>
+        <li>Parameters listed normally (no prefix) are <b>required</b>.</li>
+        <li>If the function is called with too few or too many arguments, Lisp signals an error.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun add-two (a b)
+  (+ a b))
+
+(add-two 3 4)  ; =&gt; 7
+(add-two 3)    ; =&gt; Error: too few arguments
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Optional parameters (<code>&amp;optional</code>)</b></li>
+    <br/>
+    <ul>
+        <li>After required parameters, you can list <code>&amp;optional</code> parameters that may be omitted.</li>
+        <li>If not supplied, they default to <code>NIL</code> (or a custom default you specify).</li>
+    </ul>
 <pre><code class="language-lisp line-numbers">(defun foo (a b &amp;optional c d)
   (list a b c d))
 
-(foo 1 2);      (1 2 NIL NIL)
-(foo 1 2 3);    (1 2 3 NIL)
-(foo 1 2 3 4);  (1 2 3 4)
-
-
-
-(defun foo (a &amp;optional (b 10) (c 20))
-  (list a b c))
-(foo 1);        (1 10 20)
-(foo 1 2);      (1 2 20)
-(foo 1 2 3);    (1 2 3)
-
-
-
-;; This would cause the height parameter to take the same value as the width parameter unless explicitly specified.
-(defun make-rectangle (width &amp;optional (height width))
-  ...)
+(foo 1 2)      ; =&gt; (1 2 NIL NIL)
+(foo 1 2 3)    ; =&gt; (1 2 3 NIL)
+(foo 1 2 3 4)  ; =&gt; (1 2 3 4)
 </code></pre>
     <br/>
-    <br/>
-    <li>Occasionally,
-        it's useful to know whether the value of an optional argument was supplied by the caller or is the default value.<br/>
-        By convention, these variables are usually named the same as the actual parameter with a <code>"-supplied-p"</code> suffix.</li>
-<pre><code class="language-lisp line-numbers">(defun foo (a b &amp;optional (c 3 c-supplied-p))
+    <ul>
+        <li>Each optional parameter can also have:
+            <ul>
+                <li>a <b>default value</b></li>
+                <li>a <b>supplied-p variable</b> (<code>T</code> or <code>NIL</code>)
+                    tells if the caller explicitly gave a value (you can also customize your own name for it).</li>
+            </ul>
+        </li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun bar (a &amp;optional (b 10) (c 20 c-supplied-p))
   (list a b c c-supplied-p))
 
-(foo 1 2);      (1 2 3 NIL)
-(foo 1 2 3);    (1 2 3 T)
+(bar 1)        ; =&gt; (1 10 20 NIL)
+(bar 1 2)      ; =&gt; (1 2 20 NIL)
+(bar 1 2 30)   ; =&gt; (1 2 30 T)
+</code></pre>
+    <br/>
+    <ul>
+        <li>Optional parameters can depend on previous ones:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun make-rectangle (width &amp;optional (height width))
+  (list :width width :height height))
+
+(make-rectangle 10)   ; =&gt; (:WIDTH 10 :HEIGHT 10)
+(make-rectangle 10 5) ; =&gt; (:WIDTH 10 :HEIGHT 5)
 </code></pre>
     <br/>
     <br/>
-    <li>Lisp lets you include a catchall parameter after the symbol <b>&amp;rest</b>.<br/>
-        It should be placed after the <u>required parameter(s)</u> and <u>optional parameter(s)</u>.
-    </li>
+
+
+    <li><b>Rest parameters (<code>&amp;rest</code>)</b></li>
+    <br/>
+    <ul>
+        <li><code>&amp;rest</code> gathers all remaining arguments into a list.</li>
+    </ul>
 <pre><code class="language-lisp line-numbers">(defun sum (&amp;rest nums)
   (reduce #'+ nums :initial-value 0))
 
-(sum);              0
-(sum 1 2 3 4);      10
+(sum)             ; =&gt; 0
+(sum 1 2 3 4 5)   ; =&gt; 15
 </code></pre>
     <br/>
+    <ul>
+        <li>The <code>&amp;rest</code> variable always receives a list, even if empty.</li>
+    </ul>
     <br/>
-    <li>To give a function keyword parameters, after any <u>required</u>, <u>optional</u>, and <u>rest</u> parameters,<br/>
-        you include the symbol <b>&amp;key</b> and then any number of keyword parameter specifiers.</li>
-<pre><code class="language-lisp line-numbers">(defun foo (&amp;key a b c)
+    <br/>
+
+
+    <li><b>Keyword parameters (<code>&amp;key</code>)</b></li>
+    <br/>
+    <ul>
+        <li>After required / optional / rest parameters, you can declare keyword arguments with <code>&amp;key</code>.</li>
+        <li>Keyword arguments are passed by name using <code>:&lt;keyword&gt;</code> symbols.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun configure (&amp;key a b c)
   (list a b c))
 
-(foo)                ; (NIL NIL NIL)
-(foo :a 1)           ; (1 NIL NIL)
-(foo :b 2)           ; (NIL 2 NIL)
-(foo :c 3)           ; (NIL NIL 3)
-(foo :a 1 :c 3)      ; (1 NIL 3)
-(foo :a 1 :b 2 :c 3) ; (1 2 3)
-(foo :a 1 :c 3 :b 2) ; (1 2 3)
-
-
-
-(defun foo (&amp;key (a 0) (b 0 b-supplied-p) (c (+ a b)))
+(configure)                ; =&gt; (NIL NIL NIL)
+(configure :a 1)           ; =&gt; (1 NIL NIL)
+(configure :b 2)           ; =&gt; (NIL 2 NIL)
+(configure :a 1 :c 3)      ; =&gt; (1 NIL 3)
+</code></pre>
+    <br/>
+    <ul>
+        <li>You can also specify default values and <code>-supplied-p</code> flags, just like optional parameters.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun foo (&amp;key (a 0) (b 0 b-supplied-p) (c (+ a b)))
   (list a b c b-supplied-p))
 
-(foo)                ; (0 0 0 NIL)
-(foo :a 1)           ; (1 0 1 NIL)
-(foo :b 1)           ; (0 1 1 T)
-(foo :b 1 :c 4)      ; (0 1 4 T)
-(foo :a 2 :b 1 :c 4) ; (2 1 4 T)
+(foo)                ; =&gt; (0 0 0 NIL)
+(foo :a 1)           ; =&gt; (1 0 1 NIL)
+(foo :b 1)           ; =&gt; (0 1 1 T)
+(foo :a 2 :b 1 :c 4) ; =&gt; (2 1 4 T)
+</code></pre>
+    <br/>
+    <ul>
+        <li>You can define <b>keyword aliases</b> to match external names to internal variable names:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun fruit (&amp;key ((:apple a)) ((:banana b) 0) ((:cherry c) 0 c-supplied-p))
+  (list a b c c-supplied-p))
+
+(fruit :apple 10 :banana 20 :cherry 30)
+;; =&gt; (10 20 30 T)
 </code></pre>
     <br/>
     <br/>
-    <li>Also, you can have keyword alias (it must be in a list):</li>
-<pre><code class="language-lisp line-numbers">(defun foo (&amp;key ((:apple a)) ((:banana b) 0) ((:cherry c) 0 c-supplied-p))
-  (list a b c c-supplied-p))
-
-(foo :apple 10 :banana 20 :cherry 30); (10 20 30 T)
 
 
+    <li><b>Combining &amp;rest and &amp;key</b></li>
+    <br/>
+    <ul>
+        <li>You can use both together if you want the raw list of keywords as well.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun foo (&amp;rest args &amp;key a b c)
+  (list args a b c))
 
-(defun foo (&amp;rest rest &amp;key a b c)
-  (list rest a b c))
+(foo :a 1 :b 2 :c 3)
+;; =&gt; ((:A 1 :B 2 :C 3) 1 2 3)
+</code></pre>
+    <br/>
+    <br/>
 
-(foo :a 1 :b 2 :c 3); ((:A 1 :B 2 :C 3) 1 2 3)
+
+    <li><b>Returning values</b></li>
+    <br/>
+    <ul>
+        <li>A function returns the value of its last evaluated form.</li>
+        <li>You can use <code>RETURN-FROM</code> to exit early with a specific value.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun check (x)
+  (if (minusp x)
+      (return-from check "negative")
+      "non-negative"))
+
+(check 5)   ; =&gt; "non-negative"
+(check -2)  ; =&gt; "negative"
+</code></pre>
+    <br/>
+    <ul>
+        <li>To return multiple values, use <code>(values ...)</code> (see <b><a href="#multiple-values">Multiple Values</a></b> chapter).</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Local functions: FLET and LABELS</b></li>
+    <br/>
+    <ul>
+        <li>You can define helper functions inside another function with <code>flet</code> or <code>labels</code>.</li>
+        <li><code>flet</code> defines local functions that cannot recursively call themselves, <code>labels</code> allows recursion.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun example (n)
+  (labels ((square (x) (* x x))
+           (sum-up (m) (if (zerop m) 0 (+ (square m) (sum-up (1- m))))))
+    (sum-up n)))
+
+(example 3) ; =&gt; 14  (1² + 2² + 3²)
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Inspecting and redefining functions</b></li>
+    <br/>
+    <ul>
+        <li>The symbol's function cell stores its definition. You can access it with <code>symbol-function</code>:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(symbol-function 'verbose-sum)
+;; =&gt; #&lt;FUNCTION VERBOSE-SUM&gt;
+</code></pre>
+    <br/>
+    <ul>
+        <li>You can also attach or change documentation:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(setf (documentation 'verbose-sum 'function)
+      "Add two numbers and print a friendly message.")
+</code></pre>
+    <br/>
+    <ul>
+        <li>To redefine a function, just call <code>defun</code> again with the same name — the old version will be replaced.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Functions vs variables: separate namespaces</b></li>
+    <br/>
+    <ul>
+        <li>Common Lisp has separate namespaces for <b>functions</b> and <b>variables</b>.</li>
+        <li>This means you can have a variable and a function with the same name.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun foo (x) (+ x 1))
+(setq foo 42)
+
+foo        ; =&gt; 42       (variable)
+(foo 10)   ; =&gt; 11       (function)
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Pure vs impure functions</b></li>
+    <br/>
+    <ul>
+        <li>A function with no side effects (no I/O, no mutation) is called <b>pure</b>.</li>
+        <li>Functions like <code>+</code> and <code>*</code> are pure; functions like <code>format</code> or <code>setf</code> have side effects.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun pure-add (x y) (+ x y))
+
+(defvar *count* 0)
+(defun impure-add (x y) (incf *count*) (+ x y))
 </code></pre>
     <br/>
 </ol>
@@ -4617,7 +4766,7 @@ CL-USER&gt; (my-app::start-ap)
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3>Returning Multiple Values</h3>
+<h3 id="multiple-values">Returning Multiple Values</h3>
 <ol>
     <li><b>Introduction</b></li>
     <br/>
