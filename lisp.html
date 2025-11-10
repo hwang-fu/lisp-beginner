@@ -2340,12 +2340,245 @@ a                   ; global A =&gt; 200
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>Adjustable Arrays and “Dynamic” Behavior</h3>
 <ol>
-    <li></li>
+    <li>JavaScript / TypeScript arrays are <b>dynamic</b>: you can always <code>push</code> / <code>pop</code> and change their length.<br/>
+        Common Lisp arrays are normally <b>fixed-size</b>, more like C arrays.<br/>
+        However, you can ask Lisp to make an array:
+        <ul>
+            <br/>
+            <li><b>adjustable</b> → it can be <code>ADJUST-ARRAY</code>-ed to a new size.</li>
+            <br/>
+            <li>with a <b>fill pointer</b> → it has a <i>logical length</i> that can be smaller than the physical capacity.</li>
+            <br/>
+        </ul>
+        This combination behaves very similarly to a <b>dynamic array</b> with capacity + current length.
+    </li>
     <br/>
     <br/>
-    <li></li>
+    <br/>
+
+    <li><b>What is a fill pointer?</b></li>
+    <br/>
+    <ul>
+        <li>An array created with <code>:fill-pointer</code> has:
+            <ul>
+                <br/>
+                <li>a <b>physical size</b> (capacity) → how many slots are allocated in memory;</li>
+                <br/>
+                <li>a <b>fill pointer</b> → how many elements are considered “in use”.</li>
+                <br/>
+            </ul>
+        </li>
+        <br/>
+        <li><code>(length array)</code> on such an array returns the <b>fill pointer</b>, not the physical size.</li>
+        <br/>
+        <li>Printing the array also shows only the part up to the fill pointer.</li>
+        <br/>
+        <li>You can still read/write elements beyond the fill pointer with <code>aref</code>, but they are “hidden” until you move the fill pointer forward.</li>
+        <br/>
+    </ul>
+    <br/>
+
+<pre><code class="language-lisp line-numbers">;; Physical size = 5, but logical length (fill-pointer) = 0
+(defparameter *buf* (make-array 5 :fill-pointer 0))
+
+*buf*         ; =&gt; #()
+(length *buf*); =&gt; 0
+
+;; Underlying storage exists:
+(setf (aref *buf* 0) 42)
+(setf (aref *buf* 1) 99)
+
+;; Still hidden because fill-pointer is 0
+*buf*         ; =&gt; #()
+(length *buf*); =&gt; 0
+
+;; Move fill pointer to 2
+(setf (fill-pointer *buf*) 2)
+*buf*         ; =&gt; #(42 99)
+(length *buf*); =&gt; 2
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Creating adjustable, fill-pointer arrays</b> (dynamic-style):</li>
+<pre><code class="language-lisp line-numbers">;; Start with capacity 0, fill-pointer 0, adjustable
+(defparameter *dyn*
+  (make-array 0
+              :element-type 't
+              :adjustable t
+              :fill-pointer 0))
+
+*dyn*            ; =&gt; #()
+(length *dyn*)   ; =&gt; 0
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>vector-push</b> and <b>vector-push-extend</b>:</li>
+    <br/>
+    <ul>
+        <li><code>vector-push</code>:
+            <ul>
+                <br/>
+                <li>stores a new element at index = current fill pointer;</li>
+                <br/>
+                <li>increments the fill pointer by 1;</li>
+                <br/>
+                <li>returns the index or <code>NIL</code> if no space is left.</li>
+                <br/>
+            </ul>
+        </li>
+        <br/>
+        <li><code>vector-push-extend</code>:
+            <ul>
+                <br/>
+                <li>same idea, but if there is no capacity, it <b>automatically grows</b> the array (calls <code>ADJUST-ARRAY</code> under the hood);</li>
+                <br/>
+                <li>takes an optional step size: <code>(vector-push-extend value array &amp;optional extension)</code>.</li>
+                <br/>
+            </ul>
+        </li>
+    </ul>
+    <br/>
+
+<pre><code class="language-lisp line-numbers">(vector-push-extend 10 *dyn*)
+(vector-push-extend 20 *dyn*)
+(vector-push-extend 30 *dyn*)
+
+*dyn*          ; =&gt; #(10 20 30)
+(length *dyn*) ; =&gt; 3
+
+;; You can also pop like from a stack:
+(vector-pop *dyn*) ; =&gt; 30
+*dyn*              ; =&gt; #(10 20)
+(length *dyn*)     ; =&gt; 2
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>ADJUST-ARRAY</b>: manually change dimensions</li>
+    <br/>
+    <ul>
+        <li><code>ADJUST-ARRAY</code> tries to <b>resize an existing array in-place</b> (if it is adjustable).</li>
+        <br/>
+        <li>Syntax: <code>(adjust-array array new-dimensions &amp;key ...)</code></li>
+        <br/>
+        <li>If the array is not adjustable, the implementation may still copy into a new array.</li>
+        <br/>
+    </ul>
+    <br/>
+
+<pre><code class="language-lisp line-numbers">;; Grow to physical size 5.
+;; Existing contents kept, new slots initialized with 0.
+(setf *dyn* (adjust-array *dyn* 5 :initial-element 0))
+
+*dyn*          ; =&gt; #(10 20 0 0 0)
+(length *dyn*) ; =&gt; 2      ; fill-pointer still 2!
+
+;; If you want logical length = 5:
+(setf (fill-pointer *dyn*) 5)
+*dyn*          ; =&gt; #(10 20 0 0 0)
+(length *dyn*) ; =&gt; 5
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Summary: :fill-pointer and :adjustable</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Option</th>
+                <th>Meaning</th>
+                <th>Typical use</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>:fill-pointer n</code></td>
+                <td>Array has a logical length <code>n</code>. <code>length</code> and printing use this.</td>
+                <td>Buffers, stacks, dynamic sequences built on top of an array.</td>
+            </tr>
+            <tr>
+                <td><code>:fill-pointer t</code></td>
+                <td>Fill pointer is initially set to the full size (all elements “in use”).</td>
+                <td>Start full, then shrink/grow by changing fill pointer.</td>
+            </tr>
+            <tr>
+                <td><code>:adjustable t</code></td>
+                <td>Array can be resized with <code>ADJUST-ARRAY</code> (and by <code>vector-push-extend</code>).</td>
+                <td>Dynamic arrays whose capacity grows over time.</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+    <li><b>Other useful MAKE-ARRAY keyword arguments</b> (overview)</li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Keyword</th>
+                <th>Example</th>
+                <th>Effect</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>:element-type</code></td>
+                <td><code>(make-array 10 :element-type 'fixnum)</code></td>
+                <td>Restrict element type (numbers, characters, etc.) for possible speed/memory benefits.</td>
+            </tr>
+            <tr>
+                <td><code>:initial-element</code></td>
+                <td><code>(make-array 5 :initial-element 0)</code></td>
+                <td>Fill all slots with this value.</td>
+            </tr>
+            <tr>
+                <td><code>:initial-contents</code></td>
+                <td><code>(make-array 3 :initial-contents '(10 20 30))</code></td>
+                <td>Provide a list (or nested lists for multi-d arrays) to initialize elements.</td>
+            </tr>
+            <tr>
+                <td><code>:fill-pointer</code></td>
+                <td><code>(make-array 10 :fill-pointer 0)</code></td>
+                <td>Enable fill pointer (logical length), required for <code>vector-push</code>, <code>vector-pop</code>.</td>
+            </tr>
+            <tr>
+                <td><code>:adjustable</code></td>
+                <td><code>(make-array 0 :adjustable t)</code></td>
+                <td>Allow resizing via <code>ADJUST-ARRAY</code>, used by <code>vector-push-extend</code>.</td>
+            </tr>
+            <tr>
+                <td><code>:displaced-to</code></td>
+                <td><code>(make-array 5 :displaced-to other-array)</code></td>
+                <td>Make an array that shares storage with another (view / slice).</td>
+            </tr>
+            <tr>
+                <td><code>:displaced-index-offset</code></td>
+                <td><code>(make-array 3 :displaced-to big :displaced-index-offset 2)</code></td>
+                <td>Start the view at a non-zero offset into the underlying array.</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+    <li><mark>Big picture</mark>:</li>
+    <ul>
+        <br/>
+        <li>Plain <code>MAKE-ARRAY</code> → fixed-size, C-like array.</li>
+        <br/>
+        <li><code>:fill-pointer</code> → adds a “logical length” on top of the physical buffer.</li>
+        <br/>
+        <li><code>:adjustable t</code> → lets you grow/shrink the buffer itself.</li>
+        <br/>
+        <li><code>vector-push</code>, <code>vector-push-extend</code>, <code>vector-pop</code>, <code>ADJUST-ARRAY</code> → tools to build dynamic, JS-like behavior.</li>
+        <br/>
+    </ul>
     <br/>
 </ol>
 <br/>
