@@ -1397,32 +1397,98 @@ foo        ; =&gt; 42       (variable)
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3>Functions As Data, a.k.a. Higher-Order Functions</h3>
+<h3>Functions as Data (Higher-Order Functions)</h3>
 <ol>
-    <li>The special operator <b>FUNCTION</b> provides the mechanism for getting at a function object.<br/>
-        It takes a single argument and returns the function with that name. The syntax <b>#'</b>, is a syntactic sugar for <b>FUNCTION</b></li>
-<pre><code class="language-lisp line-numbers">(sbcl) (defun foo (x) (* 2 x))
-FOO
-(sbcl) (function foo)
-#<Interpreted Function FOO>
-(sbcl) #'foo
-#<Interpreted Function FOO>
+    <li><b>Functions are first-class values</b></li>
+    <br/>
+    <ul>
+        <li>In Common Lisp, functions are <b>first-class objects</b>: you can store them in variables, pass them as arguments, and return them from other functions.</li>
+        <br/>
+        <li>To refer to a function object, use the <code>FUNCTION</code> special operator, or its shorthand <code>#'</code>.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun foo (x) (* 2 x))
+
+(function foo)
+;; =&gt; #&lt;FUNCTION FOO&gt;
+
+#'foo
+;; =&gt; #&lt;FUNCTION FOO&gt;
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>#'</code> is to <code>FUNCTION</code> what <code>'</code> is to <code>QUOTE</code> — shorthand notation.</li>
+        <br/>
+        <li><code>'foo</code> &nbsp; → the symbol <code>FOO</code><br/>
+            <code>#'foo</code> → the <u>function object</u> bound to <code>FOO</code></li>
+    </ul>
+    <br/>
+    <br/>
+    <br/>
+
+
+    <li><b>Calling functions dynamically: FUNCALL</b></li>
+    <br/>
+    <ul>
+        <li><code>FUNCALL</code> invokes a <u>function object</u> with a fixed number of arguments.</li>
+        <li><code>(funcall #'foo 1 2 3)</code> is the same as <code>(foo 1 2 3)</code>.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun add3 (a b c)
+  (+ a b c))
+
+(funcall #'add3 1 2 3)
+;; =&gt; 6
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>FUNCALL</code> is useful when you receive a function as an argument.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun apply-twice (fn x)
+  (funcall fn (funcall fn x)))
+
+(apply-twice #'1+ 10)
+;; =&gt; 12
 </code></pre>
     <br/>
     <br/>
-    <li><b>FUNCALL</b> is the one to use when you know the number of arguments you're going to pass to the function at the time you write the code.<br/>
-        <br/><code>(foo 1 2 3)</code> and <code>(funcall #'foo 1 2 3)</code> are basically the same.</li>
+
+
+    <li><b>Variable-function application: APPLY</b></li>
+    <br/>
+    <ul>
+        <li><code>APPLY</code> is similar to <code>FUNCALL</code> but expects its final argument to be a <b>list of remaining arguments</b>.</li>
+        <li>This allows calling a function when the number of arguments is not known in advance.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(apply #'+ 1 2 '(3 4 5))
+;; Equivalent to: (+ 1 2 3 4 5)
+;; =&gt; 15
+
+(apply #'max '(1 9 3 5 7))
+;; =&gt; 9
+</code></pre>
+    <br/>
+    <ul>
+        <li>In short:
+            <ul>
+                <li><b>FUNCALL</b> → use when you know the arguments at write time.</li>
+                <li><b>APPLY</b> → use when arguments are already in a list.</li>
+            </ul>
+        </li>
+    </ul>
     <br/>
     <br/>
+
+
+    <li><b>Example: ASCII plotter using FUNCALL</b></li>
     <br/>
-    <li>The following function demonstrates a more apt use of <b>FUNCALL</b>.<br/>
-        It accepts a function object as an argument and plots a simple ASCII-art histogram of the values returned by the argument function when it's invoked on the values from <code>min</code> to <code>max</code>, stepping by <code>step</code>.</li>
+    <ul>
+        <li>This function takes another function as an argument and prints an ASCII bar chart of its values.</li>
+    </ul>
 <pre><code class="language-lisp line-numbers">(defun plot (fn min max step)
   (loop for i from min to max by step do
     (loop repeat (funcall fn i) do (format t "*"))
     (format t "~%")))
 
-(plot #'exp 0 4 1/2)
+(plot #'exp 0 4 0.5)
 *
 *
 **
@@ -1432,57 +1498,140 @@ FOO
 ********************
 *********************************
 ******************************************************
-NIL
+</code></pre>
+    <br/>
+    <ul>
+        <li>Here, <code>fn</code> can be any function — built-in, user-defined, or anonymous.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Combining lists with REDUCE</b></li>
+    <br/>
+    <ul>
+        <li><code>REDUCE</code> applies a function cumulatively to elements of a sequence to "fold" it into one result.</li>
+        <li>Form: <code>(reduce &lt;fn&gt; &lt;sequence&gt; &amp;key :initial-value &lt;init&gt; [:from-end t])</code></li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(reduce #'+ '(1 2 3 4) :initial-value 0)
+;; =&gt; (+ (+ (+ (+ 0 1) 2) 3) 4)
+;; =&gt; 10
+
+(reduce #'max '(1 4 2 9 3))
+;; =&gt; 9
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>REDUCE</code> is the foundation for many data aggregation operations.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Anonymous functions with LAMBDA</b></li>
+    <br/>
+    <ul>
+        <li>You can create a function without giving it a name using <code>LAMBDA</code>.</li>
+        <li>It produces a <u>function object</u> that you can pass, store, or call.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(funcall #'(lambda (x y) (+ x y)) 3 4)
+;; =&gt; 7
+
+(apply #'(lambda (&amp;rest xs) (reduce #'+ xs)) '(1 2 3 4))
+;; =&gt; 10
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>LAMBDA</code> forms are often used inline with <code>mapcar</code> and other higher-order functions:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(mapcar #'(lambda (x) (* x x)) '(1 2 3 4))
+;; =&gt; (1 4 9 16)
 </code></pre>
     <br/>
     <br/>
-    <li><b>APPLY</b> calls a function with arguments, where the last argument to apply must be a <u>list of remaining arguments</u> (empty list <code>()</code> / <code>'()</code> / <code>NIL</code> is also ok).<br/><br/>
-        <code>(apply &lt;function&gt; &lt;arg1&gt; &lt;arg2&gt; ... &lt;last-arg-list&gt;)</code></li>
-    <br/>
-    <br/>
-    <br/>
-    <li>Example with <b>APPLY</b>:
-        <code>(apply #'+ 1 2 '(3 4 5))</code> is equal to <code>(+ 1 2 3 4 5)</code>, which returns 15.
-    </li>
-    <br/>
-    <br/>
-    <br/>
-    <li><b>REDUCE</b> repeatedly applies a function pairwise to the elements of a list to "combine" them into a single result.<br/><br/>
-        <code>(reduce &lt;function&gt; &lt;sequence&gt; &amp;key :initial-value :from-end)</code><br/><br/>
-        Therefore, <code>(reduce f '(a b c d))</code> is equivalent to <code>(f (f (f a b) c) d)</code></li>
-    <br/>
-    <br/>
-    <br/>
-    <li>Example with <b>REDUCE</b>:
-        <code>(reduce #'+ '(1 2 3 4) :initial-value 0)</code>
-        is equivalent to <code>(+ (+ (+ (+ 0 1) 2) 3) 4)</code>, which returns 10.</li>
-    <br/>
-    <br/>
-    <br/>
-    <li>Anonymous functions are created with <code>(lambda (args...) body...)</code>.<br/>
-        They produce a function object (often called a <i>closure</i> when it captures variables).<br/>
-        To pass/call them, use a function designator: <code>#'(lambda ...)</code>.</li>
-<pre><code class="language-lisp line-numbers">(funcall #'(lambda (x y) (+ x y)) 3 4)
-;; 7
 
 
-
-
-(apply #'(lambda (&amp;rest xs) (reduce #'+ xs :initial-value 0)) '(1 2 3))
-;; 6
-
-
-
-
-(defun make-counter (&amp;optional (start 0))
+    <li><b>Closures: functions that capture variables</b></li>
+    <br/>
+    <ul>
+        <li>If a <code>LAMBDA</code> refers to variables from its surrounding scope, it "remembers" them even after that scope ends — this is called a <b>closure</b>.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun make-counter (&amp;optional (start 0))
   (let ((n start))
-    #'(lambda () (incf n))))
+    #'(lambda ()
+        (incf n))))
 
 (let ((next (make-counter 10)))
-  (list (funcall next) (funcall next) (funcall next)))
-
-;; Example of closure: (11 12 13)
+  (list (funcall next)
+        (funcall next)
+        (funcall next)))
+;; =&gt; (11 12 13)
 </code></pre>
+    <br/>
+    <ul>
+        <li>The inner function retains access to <code>n</code>, even after <code>make-counter</code> has finished executing.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Functions as arguments and return values</b></li>
+    <br/>
+    <ul>
+        <li>You can freely pass functions as data or return them, enabling higher-order abstractions.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun make-adder (n)
+  #'(lambda (x) (+ x n)))
+
+(setq add5 (make-adder 5))
+(funcall add5 10)
+;; =&gt; 15
+</code></pre>
+    <br/>
+    <ul>
+        <li>This pattern is common in functional programming — you can build specialized functions dynamically.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>Mapping functions over lists</b></li>
+    <br/>
+    <ul>
+        <li>Common Lisp provides functions that take another function as a parameter and apply it to each element of a collection:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(mapcar #'1+ '(1 2 3 4))                    ; =&gt; (2 3 4 5)
+(mapcar #'(lambda (x) (* x 10)) '(1 2 3))   ; =&gt; (10 20 30)
+(mapcar #'+ '(1 2 3) '(10 20 30))           ; =&gt; (11 22 33)
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>mapcar</code>, <code>mapcan</code>, and <code>map</code> are higher-order functions — they use other functions to perform their operations.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><mark>Summary</mark></li>
+    <ul>
+        <br/>
+        <li>Functions in Lisp are <b>objects</b> — you can store, pass, and return them.</li>
+        <br/>
+        <li><code>#'name</code> retrieves a function object; <code>'name</code> refers to a symbol.</li>
+        <br/>
+        <li><code>FUNCALL</code> → call a function with known arguments.</li>
+        <br/>
+        <li><code>APPLY</code> → call a function with a list of arguments.</li>
+        <br/>
+        <li><code>REDUCE</code> → combine list elements using a function.</li>
+        <br/>
+        <li><code>LAMBDA</code> → create anonymous functions; closures can capture variables.</li>
+        <br/>
+        <li><code>MAPCAR</code> and friends → apply functions elementwise to collections.</li>
+        <br/>
+        <li>Treating functions as data enables higher-order programming — passing logic, not just numbers.</li>
+        <br/>
+    </ul>
     <br/>
 </ol>
 <br/>
