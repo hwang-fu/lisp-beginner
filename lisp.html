@@ -2994,12 +2994,224 @@ a                   ; global A =&gt; 200
 
 
 <!-- * * * * * * * * * * * * * * -->
-<h3></h3>
+<h3>CONS</h3>
 <ol>
-    <li></li>
+    <li>A <b>CONS</b> is the most fundamental data structure in Lisp.
+        It constructs a pair of two values, traditionally called:
+        <ul>
+            <li><b>CAR</b> → the first value (left half)</li>
+            <li><b>CDR</b> → the second value (right half)</li>
+        </ul>
+        Together, these form a <b>cons cell</b> — the atomic "node" of all lists in Lisp.
+    </li>
     <br/>
     <br/>
-    <li></li>
+
+    <li><b>Creating a pair:</b></li>
+<pre><code class="language-lisp line-numbers">(cons 'apple 'banana)
+;; =&gt; (APPLE . BANANA)
+</code></pre>
+    <br/>
+    <ul>
+        <li>This notation <code>(A . B)</code> means “a pair whose CAR is A and CDR is B”.</li>
+        <li>If the CDR is <code>NIL</code>, Lisp prints it as a normal list: <code>(A)</code>.</li>
+    </ul>
+    <br/>
+    <br/>
+
+    <li><b>CONS is how all lists are built</b> — a list is just a chain of cons cells where each CDR points to the next cons (and the last points to <code>NIL</code>):</li>
+<pre><code class="language-lisp line-numbers">(cons 'a (cons 'b (cons 'c nil)))
+;; =&gt; (A B C)
+
+;; Equivalent literal
+'(A B C)
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Understanding the structure visually:</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Cons Cell Chain</th>
+                <th>Printed Form</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>(cons 'a 'b)</code></td>
+                <td><code>[a | b]</code></td>
+                <td><code>(A . B)</code></td>
+            </tr>
+            <tr>
+                <td><code>(cons 'a (cons 'b nil))</code></td>
+                <td><code>[a | o]→[b | NIL]</code></td>
+                <td><code>(A B)</code></td>
+            </tr>
+            <tr>
+                <td><code>(cons 'a (cons 'b (cons 'c nil)))</code></td>
+                <td><code>[a | o]→[b | o]→[c | NIL]</code></td>
+                <td><code>(A B C)</code></td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+    <br/>
+
+    <li><b>Dotted pairs vs proper lists</b></li>
+    <br/>
+    <ul>
+        <li>If the <code>CDR</code> of a cons is not another cons or <code>NIL</code>, Lisp prints it as a <b>dotted pair</b>:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(cons 'a 'b)          ; =&gt; (A . B)
+(cons 'a '(b c d))    ; =&gt; (A B C D)
+(cons '(a b) '(c d))  ; =&gt; ((A B) C D)
+</code></pre>
+    <br/>
+    <ul>
+        <li><b>Proper list</b> → ends with <code>NIL</code>.</li>
+        <li><b>Improper list (dotted)</b> → ends with something else.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(cons 'a (cons 'b 'c))
+;; =&gt; (A B . C)
+</code></pre>
+    <br/>
+    <br/>
+    <br/>
+
+    <li><b>Accessing parts of a CONS cell:</b></li>
+<pre><code class="language-lisp line-numbers">(defparameter *pair* (cons 'x 'y))
+
+(car *pair*) ; =&gt; X
+(cdr *pair*) ; =&gt; Y
+</code></pre>
+    <br/>
+    <ul>
+        <li>Each cell always holds exactly two parts — even in lists of many elements.</li>
+    </ul>
+    <br/>
+    <br/>
+    <br/>
+
+    <li><b>CONSing lists together</b></li>
+<pre><code class="language-lisp line-numbers">(cons 0 '(1 2 3))
+;; =&gt; (0 1 2 3)
+
+(cons '(1 2) '(3 4))
+;; =&gt; ((1 2) 3 4)
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>CONS</code> only adds a single element to the front; it doesn’t flatten lists.</li>
+        <br/>
+        <li>If you want to concatenate, use <code>APPEND</code> instead.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(append '(1 2) '(3 4))
+;; =&gt; (1 2 3 4)
+</code></pre>
+    <br/>
+    <br/>
+    <br/>
+
+    <li><b>Common idioms:</b></li>
+<pre><code class="language-lisp line-numbers">(push &lt;item&gt; &lt;list&gt;)
+;; same as (setf &lt;list&gt; (cons &lt;item&gt; &lt;list&gt;))
+
+(pop &lt;list&gt;)
+;; removes and returns the first element (like stack pop)
+</code></pre>
+    <br/>
+    <ul>
+        <li><code>PUSH</code> and <code>POP</code> are macros built around <code>CONS</code> and <code>CAR/CDR</code>.</li>
+        <br/>
+        <li>This makes linked-list stacks trivial to implement.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *stack* nil)
+(push 'first *stack*) ; =&gt; (FIRST)
+(push 'second *stack*) ; =&gt; (SECOND FIRST)
+(pop *stack*)         ; =&gt; SECOND
+*stack*               ; =&gt; (FIRST)
+</code></pre>
+    <br/>
+    <br/>
+    <br/>
+
+    <li><b>Pairs as associations:</b></li>
+<pre><code class="language-lisp line-numbers">(defparameter *pair* (cons 'key 'value))
+*pair* ; =&gt; (KEY . VALUE)
+
+(car *pair*) ; =&gt; KEY
+(cdr *pair*) ; =&gt; VALUE
+</code></pre>
+    <br/>
+    <ul>
+        <li>Such pairs are used in <b>association lists</b> (<code>alist</code>), which map keys to values.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defparameter *alist*
+  '((apple . red)
+    (banana . yellow)
+    (grape . purple)))
+
+(assoc 'banana *alist*)
+;; =&gt; (BANANA . YELLOW)
+
+(cdr (assoc 'banana *alist*))
+;; =&gt; YELLOW
+</code></pre>
+    <br/>
+    <br/>
+    <br/>
+
+    <li><b>CONS memory analogy:</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>In Lisp</th>
+                <th>In C analogy</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>(cons a b)</code></td>
+                <td><code>struct Pair { void *car; void *cdr; }</code></td>
+            </tr>
+            <tr>
+                <td><code>(car x)</code></td>
+                <td><code>x-&gt;car</code></td>
+            </tr>
+            <tr>
+                <td><code>(cdr x)</code></td>
+                <td><code>x-&gt;cdr</code></td>
+            </tr>
+            <tr>
+                <td><code>(cons 1 (cons 2 (cons 3 nil)))</code></td>
+                <td>Linked list: head→next→next→NULL</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+    <li><b>Summary:</b></li>
+    <ul>
+        <br/>
+        <li><code>CONS</code> creates a pair (two fields: <code>CAR</code> and <code>CDR</code>).</li>
+        <br/>
+        <li>Lists are chains of cons cells where each <code>CDR</code> points to the next.</li>
+        <br/>
+        <li><code>(A . B)</code> is a pair; <code>(A B C)</code> is shorthand for nested <code>CONS</code> ending with <code>NIL</code>.</li>
+        <br/>
+        <li><code>CAR</code> and <code>CDR</code> retrieve the left and right parts of a cons cell.</li>
+        <br/>
+        <li><code>PUSH</code> and <code>POP</code> macros are built upon <code>CONS</code>.</li>
+        <br/>
+        <li><b>Everything in Lisp lists</b> — trees, stacks, queues, association tables — is ultimately built from <code>CONS</code> cells.</li>
+        <br/>
+    </ul>
     <br/>
 </ol>
 <br/>
