@@ -3584,7 +3584,6 @@ foo          ; =&gt; 10          ; value cell
     <li><b>Traversing an alist</b></li>
 <pre><code class="language-lisp line-numbers">(dolist (pair *colors*)
   (format t "~A → ~A~%" (car pair) (cdr pair)))
-;; Prints:
 ;; APPLE → RED
 ;; BANANA → YELLOW
 ;; GRAPE → PURPLE
@@ -3702,7 +3701,213 @@ foo          ; =&gt; 10          ; value cell
 
 
 <!-- * * * * * * * * * * * * * * -->
+<h3>Symbol Properties and <code>SYMBOL-PLIST</code></h3>
+<ol>
+    <li><b>Every symbol has its own property list</b></li>
+    <br/>
+    <ul>
+        <li>Each Lisp symbol can carry its own attached <b>property list</b> (short: <b>plist</b>).</li>
+        <br/>
+        <li>This plist is a list of alternating keys and values:
+            <code>(key1 val1 key2 val2 ...)</code></li>
+        <br/>
+        <li>It’s accessed through <code>(symbol-plist 'symbol-name)</code>.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(symbol-plist 'apple)
+;; =&gt; NIL  (no properties yet)
+</code></pre>
+    <br/>
+    <br/>
 
+
+    <li><b>Setting properties with <code>setf</code></b></li>
+    <br/>
+    <ul>
+        <li>You can directly assign a plist to a symbol:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(setf (symbol-plist 'apple)
+      '(:color "red" :taste "sweet" :origin "Poland"))
+
+(symbol-plist 'apple)
+;; =&gt; (:COLOR "red" :TASTE "sweet" :ORIGIN "Poland")
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Reading properties with <code>get</code> or <code>getf</code></b></li>
+    <br/>
+    <ul>
+        <li><code>get</code> is the traditional function specialized for symbol plists:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(get 'apple :color)
+;; =&gt; "red"
+
+(get 'apple :origin)
+;; =&gt; "Poland"
+
+(get 'apple :price)
+;; =&gt; NIL   ; key not present
+</code></pre>
+    <br/>
+    <ul>
+        <li>You can also operate on the plist directly using <code>getf</code>:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(getf (symbol-plist 'apple) :taste)
+;; =&gt; "sweet"
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Changing and adding properties</b></li>
+    <br/>
+    <ul>
+        <li>Simply use <code>setf</code> with <code>get</code> or <code>getf</code>:</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(setf (get 'apple :taste) "sour")
+(get 'apple :taste)
+;; =&gt; "sour"
+
+(setf (getf (symbol-plist 'apple) :season) 'autumn)
+(symbol-plist 'apple)
+;; =&gt; (:COLOR "red" :TASTE "sour" :ORIGIN "Poland" :SEASON AUTUMN)
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Removing a property</b></li>
+    <br/>
+    <ul>
+        <li>Use <code>remprop</code> for symbol plists, or <code>remf</code> for generic plists.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(remprop 'apple :origin)
+(symbol-plist 'apple)
+;; =&gt; (:COLOR "red" :TASTE "sour" :SEASON AUTUMN)
+
+(remf (symbol-plist 'apple) :taste)
+(symbol-plist 'apple)
+;; =&gt; (:COLOR "red" :SEASON AUTUMN)
+</code></pre>
+    <br/>
+    <br/>
+
+
+    <li><b>Common pattern: attaching metadata to functions or symbols</b></li>
+    <br/>
+    <ul>
+        <li>Because every symbol can carry its own plist, you can easily attach metadata to your functions, variables, or constants.</li>
+    </ul>
+<pre><code class="language-lisp line-numbers">(defun compute-tax (price)
+  (* price 0.19))
+
+(setf (get 'compute-tax :author) "Hwangfucius")
+(setf (get 'compute-tax :category) "Logic Study")
+
+(format t "Author: ~A~%" (get 'compute-tax :author))
+(format t "Category: ~A~%" (get 'compute-tax :category))
+;; Author: Hwangfucius
+;; Category: Logic Study
+</code></pre>
+    <br/>
+    <ul>
+        <li>Think of it as attaching "tags" or "annotations" to the symbol object itself.</li>
+    </ul>
+    <br/>
+    <br/>
+
+
+    <li><b>PLIST structure recap</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Concept</th>
+                <th>Example</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Raw plist</td>
+                <td><code>'(:color "red" :taste "sweet")</code></td>
+                <td>Linear key-value sequence</td>
+            </tr>
+            <tr>
+                <td>Attached to symbol</td>
+                <td><code>(symbol-plist 'apple)</code></td>
+                <td>Property list stored within that symbol object</td>
+            </tr>
+            <tr>
+                <td>Read</td>
+                <td><code>(get 'apple :color)</code></td>
+                <td>Retrieve value</td>
+            </tr>
+            <tr>
+                <td>Write</td>
+                <td><code>(setf (get 'apple :taste) "sour")</code></td>
+                <td>Modify or add</td>
+            </tr>
+            <tr>
+                <td>Delete</td>
+                <td><code>(remprop 'apple :taste)</code></td>
+                <td>Remove entry</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+
+
+    <li><b>Iterating over a symbol’s plist</b></li>
+    <br/>
+<pre><code class="language-lisp line-numbers">(let ((plist (symbol-plist 'apple)))
+  (loop for (key val) on plist by #'cddr
+        do (format t "~A → ~A~%" key val)))
+
+;; :COLOR → red
+;; :SEASON → AUTUMN
+</code></pre>
+    <br/>
+    <br/>
+
+    <li><b>Comparing symbol plist with external alists</b></li>
+    <br/>
+    <table>
+        <thead>
+            <tr>
+                <th>Feature</th>
+                <th>Symbol plist</th>
+                <th>Alist</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Storage form</td>
+                <td><code>(key1 val1 key2 val2 ...)</code></td>
+                <td><code>((key1 . val1) (key2 . val2))</code></td>
+            </tr>
+            <tr>
+                <td>Attached to</td>
+                <td>A single symbol object</td>
+                <td>Any variable holding list</td>
+            </tr>
+            <tr>
+                <td>Access functions</td>
+                <td><code>get</code>, <code>remprop</code></td>
+                <td><code>assoc</code>, <code>acons</code></td>
+            </tr>
+            <tr>
+                <td>Use case</td>
+                <td>Metadata or attributes for a symbol</td>
+                <td>External key-value mapping</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+</ol>
+<br/>
 <!-- * * * * * * * * * * * * * * -->
 
 
