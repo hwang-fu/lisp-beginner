@@ -2194,15 +2194,34 @@ foo        ; =&gt; 42       (variable)
 <!-- * * * * * * * * * * * * * * -->
 <h3>UNLESS</h3>
 <ol>
-    <li><b>UNLESS</b> is the logical opposite of <b>WHEN</b>. If the condition is false (<code>NIL</code>), it executes the body.</li>
+    <li>
+        <code>UNLESS</code> is the logical opposite of <code>WHEN</code>.<br/>
+        It evaluates its body only if the test condition is <code>NIL</code> (false).<br/>
+        The return value of <code>UNLESS</code> is the result of the <u>last</u> expression in its body, if the condition is true, it returns <code>NIL</code> without executing the body.
+    </li>
     <br/>
+
 <pre><code class="language-lisp line-numbers">(let ((x 0))
   (unless (&gt; x 0)
     (format t "x is not positive~%")
     "Did something"))
-;; prints "x is not positive"
-;; returns "Did something"
+;; prints: x is not positive
+;; returns: "Did something"
 </code></pre>
+
+    <br/>
+    <br/>
+
+    <li>
+        <b>Equivalent form:</b>
+        <code>UNLESS</code> is simply shorthand for an <code>IF</code> where the condition is negated and the <u>else</u> branch is omitted.
+    </li>
+    <br/>
+
+<pre><code class="language-lisp line-numbers">(if (not (&gt; x 0))
+    (progn
+      (format t "x is not positive~%")
+      "Did something"))</code></pre>
     <br/>
 </ol>
 <br/>
