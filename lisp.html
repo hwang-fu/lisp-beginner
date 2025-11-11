@@ -2148,16 +2148,40 @@ foo        ; =&gt; 42       (variable)
 <!-- * * * * * * * * * * * * * * -->
 <h3>WHEN</h3>
 <ol>
-    <li><b>WHEN</b> is like a simplified IF that only has a then branch (no else).<br/>
-        If the condition is true, it executes one or more expressions.</li>
+    <li>
+        <code>WHEN</code> is a simplified <code>IF</code> that only has a <u>then</u> branch (no <u>else</u>).<br/>
+        It checks a condition, and if the result is true (non-<code>NIL</code>), it evaluates one or more expressions in sequence.<br/>
+        The return value of <code>WHEN</code> is the result of the <u>last expression</u> in its body, if the condition is false, it returns <code>NIL</code>.
+    </li>
     <br/>
+
 <pre><code class="language-lisp line-numbers">(let ((x 5))
   (when (&gt; x 0)
     (format t "x is positive~%")
     (* x 2)))
-;; prints "x is positive"
-;; returns 10
+;; prints: x is positive
+;; returns: 10
 </code></pre>
+
+    <br/>
+    <br/>
+
+    <li>
+        <b>Equivalent form:</b>
+        <code>WHEN</code> is essentially shorthand for an <code>IF</code> with an implicit <u>PROGN</u> inside its <em>then</em> branch.
+    </li>
+
+<pre><code class="language-lisp line-numbers">(if (&gt; x 0)
+    (progn
+      (format t "x is positive~%")
+      (* x 2)))</code></pre>
+
+    <br/>
+    <br/>
+
+    <li>
+        The opposite of <code>WHEN</code> is <code>UNLESS</code>, which executes its body when the condition is false.
+    </li>
     <br/>
 </ol>
 <br/>
