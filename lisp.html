@@ -6338,7 +6338,247 @@ CL-USER&gt; (my-app::start-ap)
 
 
 <!-- * * * * * * * * * * * * * * -->
+<h3>Details on FORMAT</h3>
+<ol>
+    <li>
+        Its basic signature is:
+        <code>(format &lt;destination&gt; &lt;control-string&gt; &amp;rest &lt;arguments&gt;)</code><br/>
+        It interprets the <u>control string</u> and replaces <code>~</code>-directives with formatted versions of the given arguments.
+    </li>
 
+    <br/>
+    <br/>
+    <li>
+        <b>Destination argument:</b><br/>
+        The first argument (<code>destination</code>) determines <u>where</u> the output goes:
+        <ul>
+            <li><code>T</code>: &nbsp; &nbsp; print to the standard output (usually the terminal).</li>
+            <li><code>NIL</code>: do not print, instead, return the resulting string.</li>
+            <li>a stream: print to that stream (e.g. <code>*standard-output*</code>, file stream, string stream).</li>
+        </ul>
+    </li>
+    <br/>
+
+<pre><code class="language-lisp line-numbers">(format t "Hello, ~a!~%" "World")
+;; prints:  Hello, World!
+;; returns: NIL
+
+(format nil "Hello, ~a!~%" "World")
+;; prints nothing
+;; returns: "Hello, World!
+;; " (with a newline at the end)
+
+(format nil "Hello, ~a!" "World")
+;; prints nothing
+;; returns: "Hello, World!"
+
+(with-open-file (out "greeting.txt"
+                     :direction :output
+                     :if-exists :supersede)
+  (format out "Saved greeting: ~a~%" "Hello from Common Lisp"))
+;; writes to the file greeting.txt
+</code></pre>
+
+    <br/>
+    <br/>
+    <li>
+        <b>Basic substitution directives:</b><br/>
+        <ul>
+            <li><code>~a</code> — aesthetic printing (user-friendly, similar to <code>princ</code>).</li>
+            <li><code>~s</code> — standard printing (reader-friendly, similar to <code>prin1</code>).</li>
+            <li><code>~d</code> — print an integer in decimal.</li>
+            <li><code>~%</code> — print a newline.</li>
+            <li><code>~~</code> — print a literal tilde (<code>~</code>).</li>
+        </ul>
+    </li>
+    <br/>
+
+<pre><code class="language-lisp line-numbers">(format t "Aesthetic (~a) vs standard (~s)~%" "Hello" "Hello")
+;; prints: Aesthetic (Hello) vs standard ("Hello")
+
+(format t "Decimal: ~d~%" 42)
+;; prints: Decimal: 42
+
+(format t "Line 1~%Line 2~%")
+;; prints:
+;; Line 1
+;; Line 2
+
+(format t "Tilde example: ~~ This is a tilde.~%")
+;; prints: Tilde example: ~ This is a tilde.
+</code></pre>
+
+    <br/>
+    <br/>
+    <li>
+        <code>~a</code> is meant for human-readable output, <code>~s</code> for Lisp-readable output.
+    </li>
+
+  <pre><code class="language-lisp line-numbers">(format t "Using ~~a: ~a~%" "Hello")
+;; prints: Using ~a: Hello
+
+(format t "Using ~~s: ~s~%" "Hello")
+;; prints: Using ~s: "Hello"
+</code></pre>
+
+    <br/>
+    <br/>
+    <li>
+        <code>~d</code> is for integers (decimal),
+        <code>~f</code> is for floating-point numbers, with optional width and precision controls.
+    </li>
+
+<pre><code class="language-lisp line-numbers">(format t "Integer: ~d~%" 123)
+;; prints: Integer: 123
+
+(format t "Float default: ~f~%" 3.14159)
+;; prints something like: Float default: 3.14159
+
+;; ~,2f → 2 digits after the decimal point
+(format t "Pi to 2 decimals: ~,2f~%" 3.14159)
+;; prints: Pi to 2 decimals: 3.14
+
+;; ~10,2f → width 10, 2 decimals (padded on the left)
+(format t "Right-aligned: |~10,2f|~%" 3.14159)
+;; prints: Right-aligned: |      3.14|
+</code></pre>
+
+    <br/>
+    <br/>
+    <li>
+        <b>Newlines and &quot;fresh-line&quot;:</b><br/>
+        <ul>
+            <li><code>~%</code> → always prints a newline.</li>
+            <li><code>~&amp;</code> → prints a newline only if not already at the beginning of a line (like <code>fresh-line</code>).</li>
+        </ul>
+    </li>
+
+<pre><code class="language-lisp line-numbers">(format t "First line~%Second line~%")
+;; prints:
+;; First line
+;; Second line
+
+(format t "Hello")
+(format t "~&amp;World~%")
+;; If "Hello" ended the line, ~&amp; starts a new one.
+;; prints:
+;; Hello
+;; World
+
+;; So basically it does the same as below:
+(format t "Hello~%")
+(format t "~&amp;World~%")
+;; prints:
+;; Hello
+;; World
+</code></pre>
+
+    <br/>
+    <br/>
+    <li>
+        <b>Multiple arguments and ordering:</b><br/>
+        Each directive typically consumes one argument (unless it is a control directive).
+        The arguments are used in the order they appear.
+    </li>
+
+<pre><code class="language-lisp line-numbers">(format t "~a + ~a = ~a~%" 2 3 (+ 2 3))
+;; prints: 2 + 3 = 5
+
+(format t "Name: ~a, Age: ~d~%" "Hwangfucius" 23)
+;; prints: Name: Hwangfucius, Age: 23
+</code></pre>
+
+    <br/>
+    <br/>
+    <li>
+        The <code>~[ ... ~]</code> control directive chooses among several alternatives based on an integer argument.
+        <ul>
+            <li>The integer argument is used as a zero-based index.</li>
+            <li>Clauses are separated by <code>~;</code>.</li>
+        </ul>
+    </li>
+    <br/>
+
+<pre><code class="language-lisp line-numbers">(format t "~[zero~;one~;two~;many~]~%" 0)
+;; prints:  zero
+;; returns: NIL
+
+(format t "~[zero~;one~;two~;many~]~%" 2)
+;; prints:  two
+;; returns: NIL
+
+(format t "~[zero~;one~;two~;many~]~%" 10)
+;; prints nothing in SBCL
+;; returns: NIL
+;; (However, the last clause is used as "fallback" in some other lisp interpreters.)</code></pre>
+
+
+    <br/>
+    <br/>
+    <li>
+        The <code>~{ ... ~}</code> control directive repeats its body for each element in a list argument.<br/>
+        Inside the body, directives consume elements from the current list.
+    </li>
+<pre><code class="language-lisp line-numbers">(format t "Numbers: ~{~a ~}~%" '(1 2 3 4))
+;; prints:  Numbers: 1 2 3 4
+;; returns: NIL
+
+(format t "~{Name: ~a, Age: ~d~%~}" '(("Alice" 30) ("Bob" 25)))
+;; prints:  Name: (Alice 30), Age: (Bob 25)
+;; returns: NIL
+
+(format t "~{Name: ~a, Age: ~d~%~}" '("Alice" 30 "Bob" 25))
+;; prints:
+;;      Name: Alice, Age: 30
+;;      Name: Bob, Age: 25
+;; returns:
+;;      NIL
+</code></pre>
+
+    <br/>
+    <br/>
+    <li>
+        The <code>~*</code> control directive allows you to skip one or more arguments without printing them.<br/>
+        This is useful when combining <code>FORMAT</code> with conditional constructs.
+    </li>
+
+<pre><code class="language-lisp line-numbers">(format t "~a ~*~a~%" "first" "skip-me" "third")
+;; ~a consumes "first"
+;; ~* skips "skip-me"
+;; ~a consumes "third"
+;;
+;; prints:  first third
+;; returns: NIL
+</code></pre>
+
+    <br/>
+    <br/>
+    <li>
+        The <code>~&lt; ... ~&gt;</code> control directive can be used to create formatted fields with alignment (left, right, centered).<br/>
+        This is more advanced, but useful for tables and pretty printing.
+    </li>
+
+<pre><code class="language-lisp line-numbers">(format t "~&lt;~100a~&gt;~%" "Hi")
+;; A simple example: pad "Hi" with 98 blank spaces on the right into a field.
+;; Exact behavior depends on additional modifiers,
+;; but ~&lt; ... ~&gt; is the basic block alignment mechanism.</code></pre>
+
+    <br/>
+    <br/>
+    <li>
+        <b>FORMAT to build strings (instead of printing):</b><br/>
+        As mentioned, using <code>nil</code> as the destination makes <code>FORMAT</code> return a string.<br/>
+        This is very convenient for constructing complex strings.
+    </li>
+
+<pre><code class="language-lisp line-numbers">(let ((msg (format nil "User ~a has ~d unread messages." "Alice" 5)))
+  (print msg))
+;; prints: "User Alice has 5 unread messages."
+;; msg is the string: "User Alice has 5 unread messages."</code></pre>
+
+    <br/>
+</ol>
+<br/>
 <!-- * * * * * * * * * * * * * * -->
 
 
